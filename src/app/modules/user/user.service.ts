@@ -1,3 +1,4 @@
+import AppError from "../../errorHelpers/AppError";
 import { IAuthProvider, IUser } from "./user.interface";
 import { User } from "./user.model";
 
@@ -8,9 +9,7 @@ const createUser = async (payload: Partial<IUser>) => {
     const isUserExist = await User.findOne({email})
 
     if(isUserExist){
-        const error = new Error("User Already Exist");
-        (error as any).statusCode = 401;
-        throw error;
+        throw new AppError(401,"user Already Exist")        
     }
 
     const authProvider: IAuthProvider = {provider: 'credentials', providerId: email as string}
