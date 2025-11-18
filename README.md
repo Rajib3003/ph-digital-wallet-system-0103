@@ -17,3 +17,4 @@ npm i ts-node-dev @types/express @types/cors @types/dotenv @types/jsonwebtoken
 # error handeling 
 - global error handler
 - catchAsync handeling
+- zodValidation 
