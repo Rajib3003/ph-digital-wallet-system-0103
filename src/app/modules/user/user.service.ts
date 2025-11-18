@@ -9,7 +9,7 @@ const createUser = async (payload: Partial<IUser>) => {
     const isUserExist = await User.findOne({email})
 
     if(isUserExist){
-        throw new AppError(401,"user Already Exist")        
+        throw new AppError(409,"user Already Exist!!")        
     }
 
     const authProvider: IAuthProvider = {provider: 'credentials', providerId: email as string}

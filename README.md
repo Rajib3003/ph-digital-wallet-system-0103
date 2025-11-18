@@ -11,3 +11,9 @@ tsc --init <!-- tsconfig.json file rootDir text a ./src likhte hobe and outDir t
 npm i express mongoose zod jsonwebtoken cors dotenv
 npm i ts-node-dev @types/express @types/cors @types/dotenv @types/jsonwebtoken 
 <!-- root folder a src folder create kora dist folder create kora, src maje server.ts app.ts and App folder create korte hobe. -->
+
+
+
+# error handeling 
+- global error handler
+- catchAsync handeling
