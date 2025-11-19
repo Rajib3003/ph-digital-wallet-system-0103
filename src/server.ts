@@ -22,4 +22,19 @@ const serverStart = async () => {
 
 
 }
+
 serverStart();
+
+
+process.on("unhandledRejection", (error) => {
+    console.log("Unhandled Rejection is detected, we are closing our server....",error);
+    if (server) {
+        server.close(() => {
+            console.log("Server closed");
+            process.exit(1);
+        })}
+
+        process.exit(1);
+
+})
+

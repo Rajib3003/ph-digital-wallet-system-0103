@@ -1,4 +1,6 @@
-import { NextFunction, Request, Response } from "express";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { Request, Response } from "express";
 import { handlerZodError } from "../helpers/handlerZodError";
 import { TErrorSources } from "../interfaces/error.types";
 import AppError from "../errorHelpers/AppError";
@@ -9,7 +11,7 @@ import { handlerCastError } from "../helpers/handlerCastError";
 
 
 
-export const globalErrorHandler = (error: any, req: Request, res: Response, next: NextFunction) => {
+export const globalErrorHandler = (error : any, req: Request, res: Response) => {
     let statusCode = 500; 
     let message =  "Something went wrong !*!";
     let errorSources: TErrorSources[] | undefined = undefined;

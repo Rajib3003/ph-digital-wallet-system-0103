@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { UserService } from "./user.service";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
@@ -8,7 +8,7 @@ import sendResponse from "../../utils/sendResponse";
 
 
 
-const createUser = catchAsync(async(req: Request, res: Response, next: NextFunction) =>{   
+const createUser = catchAsync(async(req: Request, res: Response) =>{   
         const user = await UserService.createUser(req.body)
 
         sendResponse(res,{
