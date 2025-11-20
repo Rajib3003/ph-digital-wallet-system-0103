@@ -1,6 +1,7 @@
 import express from "express";
 import { router } from "./app/routes";
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
+import "./app/config/passport";
 
 
 const app = express();
