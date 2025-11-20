@@ -1,19 +1,20 @@
 import {Server} from "http";
 import mongoose from "mongoose";
 import app from "./app";
+import { envVar } from "./app/config/env";
 
 let server: Server;
 
 
 const serverStart = async () => {
-    const port = 5000;
+    // const port = 5000;
 
     try {
 
-        await mongoose.connect("mongodb+srv://mongodb:mongodb@cluster0.qgah9aq.mongodb.net/digital-wallet-db?retryWrites=true&w=majority&appName=Cluster0");
+        await mongoose.connect(envVar.DB_URL);
         console.log("Database connected");
-        server = app.listen(port, ()=>{
-            console.log(`server started on port ${port}`)
+        server = app.listen(envVar.PORT, ()=>{
+            console.log(`server started on port ${envVar.PORT}`)
         })
         
     } catch (error) {

@@ -22,6 +22,7 @@ npm i ts-node-dev @types/express @types/cors @types/dotenv @types/jsonwebtoken
 - eslint (unuse variable, extra code error diye check)
 - http-status-codes
 - bcryptjs
+- cookie-parser
 
 
 

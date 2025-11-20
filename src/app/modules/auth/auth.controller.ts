@@ -6,6 +6,8 @@ import AppError from "../../errorHelpers/AppError";
 import { StatusCodes } from "http-status-codes";
 import sendResponse from "../../utils/sendResponse";
 import { createUserToken } from "../../utils/userToken";
+import { setAuthCookie } from "../../utils/setCookie";
+import { AuthService } from "./auth.service";
 
 
 
@@ -28,7 +30,9 @@ const credentialsLogin = catchAsync(async (req: Request, res: Response, next: Ne
             return next(new AppError(StatusCodes.BAD_REQUEST, "Password is required !*!"))
         }
 
-        const userToken = createUserToken(user)
+        const userTokens = createUserToken(user)
+
+        setAuthCookie(res, userTokens)
 
         sendResponse(res,{
             success: true,
@@ -36,14 +40,36 @@ const credentialsLogin = catchAsync(async (req: Request, res: Response, next: Ne
             statusCode: StatusCodes.OK,
             data: {
                 user: userWithoutPassword,
-                userToken: userToken,
+                userToken: userTokens,
             }
         })
      } )(req,res,next)
     
 })
 
+const getNewAccessToken = catchAsync( async (req: Request, res: Response) => {
+    
+    const refreshToken = req.cookies.refreshToken
+    
+
+
+    if(!refreshToken){
+        throw new AppError(StatusCodes.BAD_REQUEST,"Refresh Token do not recieved !*!")
+    }
+    const tokenInfo = await AuthService.getNewAccessToken(refreshToken) 
+   
+
+     setAuthCookie(res, tokenInfo)
+    sendResponse(res,{
+        success: true,
+        message: "Access Token create successfully",
+        statusCode: StatusCodes.OK,
+        data: tokenInfo
+    })
+})
+
 
 export const AuthController = {
-    credentialsLogin
+    credentialsLogin,
+    getNewAccessToken
 }
