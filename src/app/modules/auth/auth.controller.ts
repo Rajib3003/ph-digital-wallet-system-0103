@@ -39,8 +39,9 @@ const credentialsLogin = catchAsync(async (req: Request, res: Response, next: Ne
             message: "User Login Successfully !*!",
             statusCode: StatusCodes.OK,
             data: {
-                user: userWithoutPassword,
                 userToken: userTokens,
+                user: userWithoutPassword,
+                
             }
         })
      } )(req,res,next)

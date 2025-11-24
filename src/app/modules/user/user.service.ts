@@ -1,3 +1,4 @@
+import { StatusCodes } from "http-status-codes";
 import { envVar } from "../../config/env";
 import AppError from "../../errorHelpers/AppError";
 import { IAuthProvider, IUser } from "./user.interface";
@@ -30,6 +31,53 @@ const createUser = async (payload: Partial<IUser>) => {
     return user
 }
 
+// const getAllUsers = async (query: Record<string, string>) => {
+
+
+    // const queryBuilder = new QueryBuilder(User.find(), query)
+const getAllUsers = async () => {
+
+    const allUser = await User.find({})
+    const total = await User.countDocuments();
+    const totalUser = Number(total)
+
+    return {       
+        data: allUser,
+        meta: { total: totalUser }
+    }
+}
+
+const getSingleUser = async (UserId: string) => {
+    if(!UserId){
+        throw new AppError(StatusCodes.BAD_REQUEST,"User Id Not Found !*!")
+    }
+    const singleUser = await User.findById(UserId)
+    return singleUser
+}
+
+const deleteUser = async (UserId: string) => {
+  await User.findByIdAndDelete(UserId)
+  
+    return null
+}
+
+const updatedUser = async (UserId: string , payload: Partial<IUser>) => {
+    const user = await User.findById(UserId)
+
+    const userResult = await User.findByIdAndUpdate(UserId, payload, {new: true, runValidators: true})
+
+    console.log(user)
+    console.log(userResult)
+
+    return userResult
+    
+    
+}
+
 export const UserService = {
-    createUser
+    createUser,
+    getAllUsers,
+    getSingleUser,
+    deleteUser,
+    updatedUser
 }
