@@ -3,11 +3,12 @@ import { NextFunction, Request, Response } from "express";
 import catchAsync from "../../utils/catchAsync";
 import passport from "passport";
 import AppError from "../../errorHelpers/AppError";
-import { StatusCodes } from "http-status-codes";
+import StatusCodes from "http-status-codes";
 import sendResponse from "../../utils/sendResponse";
 import { createUserToken } from "../../utils/userToken";
 import { setAuthCookie } from "../../utils/setCookie";
 import { AuthService } from "./auth.service";
+import { JwtPayload } from "jsonwebtoken";
 
 
 
@@ -68,9 +69,62 @@ const getNewAccessToken = catchAsync( async (req: Request, res: Response) => {
         data: tokenInfo
     })
 })
+const logout = catchAsync( async (req: Request, res: Response) => {
+    
+    res.clearCookie("accessToken",{
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+    })
+    res.clearCookie("refreshToken",{
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+    })
+    sendResponse(res,{
+        success: true,
+        message: "User logged out successfully !*!",
+        statusCode: StatusCodes.OK,
+        data: null
+    })
+})
+const changePassword = catchAsync( async (req: Request, res: Response) => {
+    const decodedToken = req.user;
+    const newPassword = req.body.newPassword;
+    const oldPassword = req.body.oldPassword;
+    if(!decodedToken){
+        throw new AppError(StatusCodes.BAD_REQUEST, "Decoded token is not recieved")
+    }
+    await AuthService.changePassword(oldPassword, newPassword, decodedToken);
+
+    sendResponse(res,{
+        success: true,
+        message: "Password changed successfully !*!",
+        statusCode: StatusCodes.OK,
+        data: null
+    })
+})
+const setPassword = catchAsync( async (req: Request, res: Response) => {
+    const decodedToken = req.user as JwtPayload;
+    const {password} = req.body;
+    if(!decodedToken){
+        throw new AppError(StatusCodes.BAD_REQUEST, "Decoded token is not recieved !*!")
+    }
+    await AuthService.setPassword(decodedToken.userId, password);
+    
+    sendResponse(res,{
+        success: true,
+        message: "Password Changed successfully !*!",
+        statusCode: StatusCodes.OK,
+        data: null
+    })
+});
 
 
 export const AuthController = {
     credentialsLogin,
-    getNewAccessToken
+    getNewAccessToken,
+    logout,
+    changePassword,
+    setPassword
 }
