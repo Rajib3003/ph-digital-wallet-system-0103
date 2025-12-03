@@ -13,7 +13,9 @@ interface EnvConfig {
     JWT_REFRESH_EXPIRES: string,
     FRONTEND_URL: string,
     BACKEND_URL: string,
-
+    GOOGLE_CLIENT_SECRET: string,
+    GOOGLE_CLIENT_ID: string,
+    GOOGLE_CALLBACK_URL: string,
     EMAIL_SENDER: {
         SMTP_USER: string;
         SMTP_PASS: string;
@@ -42,6 +44,9 @@ const loadEnvVariables = () : EnvConfig => {
         "SMTP_HOST",
         "SMTP_USER",
         "SMTP_FROM", 
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "GOOGLE_CALLBACK_URL",
     ]
 
     requiredEnvVariables.forEach(key =>{
@@ -62,6 +67,9 @@ const loadEnvVariables = () : EnvConfig => {
         JWT_REFRESH_EXPIRES: process.env.JWT_REFRESH_EXPIRES as string,
         FRONTEND_URL: process.env.FRONTEND_URL as string,
         BACKEND_URL: process.env.BACKEND_URL as string,
+        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
+        GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET as string,
+        GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL as string,
         EMAIL_SENDER: {
             SMTP_USER: process.env.SMTP_USER as string,
             SMTP_PASS: process.env.SMTP_PASS as string,
