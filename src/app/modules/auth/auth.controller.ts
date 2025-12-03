@@ -119,6 +119,32 @@ const setPassword = catchAsync( async (req: Request, res: Response) => {
         data: null
     })
 });
+const forgotPassword = catchAsync( async (req: Request, res: Response) => {
+    const { email } = req.body;
+    await AuthService.forgotPassword(email);
+    sendResponse(res,{
+        success: true,
+        message: "Email sent successfully !*!",
+        statusCode: StatusCodes.OK,
+        data: null
+    })
+});
+
+const resetPassword = catchAsync( async (req: Request, res: Response) => {
+    const decodedToken = req.user as JwtPayload;
+    
+    if(!decodedToken){
+        throw new AppError(StatusCodes.BAD_REQUEST, "Decoded token is not recieved !*!")
+    }
+    await AuthService.resetPassword(req.body, decodedToken);
+    
+    sendResponse(res,{
+        success: true,
+        message: "Password reset successfully !*!",
+        statusCode: StatusCodes.OK,
+        data: null
+    })
+});
 
 
 export const AuthController = {
@@ -126,5 +152,7 @@ export const AuthController = {
     getNewAccessToken,
     logout,
     changePassword,
-    setPassword
+    setPassword,
+    forgotPassword,
+    resetPassword,
 }

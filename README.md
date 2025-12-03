@@ -53,3 +53,13 @@ export const generateToken = (payload: JwtPayload, secret: string, expiresIn: st
 ei rokom code likhte hobe, then auth.controller.ts file a giye 
 const userToken = createUserToken(user) createUserToken er maje user ta sent kore dite hobe jeta amra userToken file function create korechi.
 summary: pakege install -> .env (variable) add -> utils (userToken.ts, jwt.ts) file create -> auth.controller.ts 
+
+
+# forget password korte mail send korte
+
+- npm i nodemailer
+- npm i @types/nodemailer
+- npm i ejs
+- npm i @types/ejs
+
+

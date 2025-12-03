@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { JwtPayload } from "jsonwebtoken"
 import { createNewAccessTokenWithRefreshToken } from "../../utils/userToken"
 import { User } from "../user/user.model"
@@ -5,7 +6,9 @@ import AppError from "../../errorHelpers/AppError"
 import { StatusCodes } from "http-status-codes"
 import bcrypt from "bcryptjs"
 import { envVar } from "../../config/env"
-import { IAuthProvider } from "../user/user.interface"
+import { IAuthProvider, isActived } from "../user/user.interface"
+import jwt from 'jsonwebtoken';
+import { sendEmail } from "../user/sendEmail"
 
 
 
@@ -52,9 +55,61 @@ const setPassword = async (userId: string, plainPassword: string) => {
     await user.save();
 
 }
+const forgotPassword = async (email: string) => {
+    const isUserExist = await User.findOne({email});
+    if(!isUserExist){
+        throw new AppError(StatusCodes.BAD_REQUEST,"User does not Exist !*!")
+    }
+    if(!isUserExist.isVerified){
+        throw new AppError(StatusCodes.BAD_REQUEST, "User is not Verified Yet","");
+    }
+    if(isUserExist.isActived === isActived.BLOCKED || isUserExist.isActived === isActived.INACTIVE){
+        throw new AppError(StatusCodes.BAD_REQUEST, `User is ${isUserExist.isActived}`,"");
+    }
+    if(isUserExist.isDeleted){
+        throw new AppError(StatusCodes.BAD_REQUEST, "User is Deleted","");
+    }
+    const JwtPayload = {
+        userId: isUserExist._id,
+        email: isUserExist.email,
+        role: isUserExist.role
+    }
+
+    const resetToken = jwt.sign(JwtPayload, envVar.JWT_ACCESS_SECRET, {expiresIn: '30m'});
+    const resetUrlLink = `${envVar.FRONTEND_URL}/reset-password?id=${isUserExist._id}&token=${resetToken}`;
+    sendEmail({
+        to: isUserExist.email as string,
+        subject: "Password Reset Link",
+        templateName: "forgetPassword",
+        templateData: {
+            name: isUserExist.name,
+            resetUrlLink: resetUrlLink
+        }
+    })
+    
+}
+
+const resetPassword = async (payload: Record<string, any>, decodedToken: JwtPayload) => {
+     if(payload.id != decodedToken.userId){
+        throw new AppError(StatusCodes.UNAUTHORIZED, "You are not authorized to reset password", "")
+    }
+    const isUserExist = await User.findById(decodedToken.userId);
+     if(!isUserExist){
+        throw new AppError(StatusCodes.BAD_REQUEST, "auth service User do not recieved", "")
+    }
+     const hashedPassword = await bcrypt.hash(payload.newPassword, Number(envVar.BCRYPT_SALT_ROUND));
+    isUserExist.password = hashedPassword;
+    await isUserExist.save();
+   
+
+    return{};
+
+}
 
 export const AuthService = {
     getNewAccessToken,
     changePassword,
-    setPassword
+    setPassword,
+    forgotPassword,
+    resetPassword,
 }
