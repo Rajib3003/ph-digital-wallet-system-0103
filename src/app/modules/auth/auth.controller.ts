@@ -9,6 +9,7 @@ import { createUserToken } from "../../utils/userToken";
 import { setAuthCookie } from "../../utils/setCookie";
 import { AuthService } from "./auth.service";
 import { JwtPayload } from "jsonwebtoken";
+import { envVar } from "../../config/env";
 
 
 
@@ -145,6 +146,27 @@ const resetPassword = catchAsync( async (req: Request, res: Response) => {
         data: null
     })
 });
+const googleCallBackController = catchAsync( async (req: Request, res: Response) => {
+    
+
+    let redirectTo = req.query.state ? req.query.state as string : "";
+    if(redirectTo.startsWith("/")){
+        redirectTo = redirectTo.slice(1);
+    }
+    const user = req.user;
+    
+    if(!user){
+        throw new AppError(StatusCodes.UNAUTHORIZED, "User Not Found !*!")
+    }
+   
+        
+    const tokenInfo = createUserToken(user)
+    setAuthCookie(res, tokenInfo)
+    
+
+    res.redirect(`${envVar.FRONTEND_URL}/${redirectTo}`);
+    
+});
 
 
 export const AuthController = {
@@ -155,4 +177,5 @@ export const AuthController = {
     setPassword,
     forgotPassword,
     resetPassword,
+    googleCallBackController
 }

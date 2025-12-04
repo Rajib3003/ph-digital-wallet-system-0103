@@ -5,6 +5,7 @@ import { User } from "../modules/user/user.model";
 import bcrypt from "bcryptjs";
 import { Strategy as GoogleStrategy, VerifyCallback } from "passport-google-oauth20";
 import { envVar } from "./env";
+import { isActived, Role } from "../modules/user/user.interface";
 
 
 passport.use(new LocalStrategy({
@@ -45,17 +46,50 @@ passport.use(new GoogleStrategy({
             return done(null, false, {message: "No email found in Google profile !*!"});
         }
         let isUserExist = await User.findOne({email});
+
         if(isUserExist && !isUserExist.isVerified){
-            const newUser = new User({
-                email: email,
+            return done(null, false, {message: "User is not Verified Yet !*!"});
+        }
+        if (isUserExist && (isUserExist.isActived === isActived.BLOCKED || isUserExist.isActived === isActived.INACTIVE)){
+            return done(`User is ${isUserExist.isActived}`);
+        }
+        if (isUserExist && isUserExist.isDeleted){
+            return done(null, false, {message: "User is deleted !*!"});
+        }
+        if (!isUserExist) {
+            isUserExist = await User.create({
+                email,
                 name: profile.displayName,
-                auths: [{
-                    provider: "Google",
-                    providerId: profile.id,
-                }], 
-            });
+                picture: profile.photos?.[0].value,
+                role: Role.USER,
+                isVerified: true,
+                auths: [
+                    {
+                        provider: "Google",
+                        providerId: profile.id
+                    }
+                ]
+            })
+        }
+        return done(null, isUserExist);
+
+
     } catch (error) {
-        console.log("Google Strategy Error", error);
+        console.log("Google Strategy Error !*!", error);
         return done(error as any);
     }
 }));
+
+passport.serializeUser((user: any, done:(err: any, id?: unknown)=> void) => {
+    done(null, user._id);
+});
+
+passport.deserializeUser(async (id: string, done: any) => {
+    try {
+        const user = await User.findById(id);
+        done(null, user);
+    } catch (error) {
+        console.log(error)
+        done(error);
+    }
+});
