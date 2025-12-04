@@ -1,19 +1,21 @@
 import {Server} from "http";
 import mongoose from "mongoose";
 import app from "./app";
+import { envVar } from "./app/config/env";
+import { seedSuperAdmin } from "./app/utils/seedSuperAdmin";
 
 let server: Server;
 
 
 const serverStart = async () => {
-    const port = 5000;
+    // const port = 5000;
 
     try {
 
-        await mongoose.connect("mongodb+srv://mongodb:mongodb@cluster0.qgah9aq.mongodb.net/digital-wallet-db?retryWrites=true&w=majority&appName=Cluster0");
+        await mongoose.connect(envVar.DB_URL);
         console.log("Database connected");
-        server = app.listen(port, ()=>{
-            console.log(`server started on port ${port}`)
+        server = app.listen(envVar.PORT, ()=>{
+            console.log(`server started on port ${envVar.PORT}`)
         })
         
     } catch (error) {
@@ -22,4 +24,24 @@ const serverStart = async () => {
 
 
 }
-serverStart();
+
+(async()=> {
+    await serverStart();
+    await seedSuperAdmin();
+})();
+
+// serverStart();
+
+
+process.on("unhandledRejection", (error) => {
+    console.log("Unhandled Rejection is detected, we are closing our server....",error);
+    if (server) {
+        server.close(() => {
+            console.log("Server closed");
+            process.exit(1);
+        })}
+
+        process.exit(1);
+
+})
+
