@@ -25,5 +25,5 @@ router.get("/google", async (req:Request, res: Response, next: NextFunction)=> {
 router.get("/google/callback", passport.authenticate("google", { failureRedirect: `${envVar.FRONTEND_URL}/login?error=There is some issues with your account. Please contact with our support team  !*!`}), AuthController.googleCallBackController)
 
 
-//http://localhost:5000/api/v1/auth/google/callback?state=%2F&code=4%2F0Ab32j93vD1o3WLIIT6x9r_-nurx4BNrCgpg_FKW2u05guTaxqqDBBeDHhEYDtH5CsfwjBQ&scope=email+profile+openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email&authuser=0&prompt=none
+
 export const AuthRoutes = router

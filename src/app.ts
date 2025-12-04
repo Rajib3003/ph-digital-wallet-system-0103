@@ -6,9 +6,15 @@ import cookieParser from "cookie-parser";
 import passport from "passport";
 import expressSession from "express-session";
 import { envVar } from "./app/config/env";
+import cors from "cors";
 
 
 const app = express();
+
+const allowedOrigins = [
+    envVar.FRONTEND_URL,    
+    envVar.BACKEND_URL,    
+];
 
 app.use(expressSession({
     secret: envVar.EXPRESS_SESSION_SECRET,
@@ -21,7 +27,18 @@ app.use(passport.session());
 app.use(express.json());
 app.use(cookieParser());
 
-// app.use(cors())
+app.use(cors({    
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            console.log("Blocked by CORS:", origin);
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    credentials: true,
+}));
 
 app.use("/api/v1", router)
 
