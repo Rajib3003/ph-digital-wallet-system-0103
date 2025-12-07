@@ -41,11 +41,12 @@ export const depositMoney = async (userId: string, amount?: number) => {
             }
 
             wallet.balance += numericAmount;
+            
 
             // Create a transaction for this deposit
             await TransactionService.createTransaction({
                 type: TransactionType.TOPUP,
-                receiver: wallet.owner.toString(),
+                to: wallet.owner,                
                 amount: numericAmount,
                 status: TransactionStatus.COMPLETED
             });

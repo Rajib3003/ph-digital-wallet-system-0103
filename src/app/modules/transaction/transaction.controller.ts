@@ -9,9 +9,9 @@ import { JwtPayload } from "jsonwebtoken";
 
 
 const getMyTransactions = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
-    console.log("get my transactions")
+    
     const decodeToken = req.user as JwtPayload
-     console.log("get my transactions",decodeToken)
+     
     if(!decodeToken){
         throw new AppError(StatusCodes.BAD_REQUEST,"DecodeToken not found in request");
     } 
@@ -50,6 +50,7 @@ const { walletId } = req.params;
 }); 
 const createTransaction = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
     const transactionData = req.body;
+    console.log("transaction Data ===", transactionData)
         const transaction = await TransactionService.createTransaction(transactionData);
         sendResponse(res,{
             success: true,
