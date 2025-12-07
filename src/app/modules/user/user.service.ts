@@ -4,6 +4,8 @@ import AppError from "../../errorHelpers/AppError";
 import { IAuthProvider, IUser } from "./user.interface";
 import { User } from "./user.model";
 import bcrypt from "bcryptjs";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { userSearchableFields } from "./user.constant";
 
 
 const createUser = async (payload: Partial<IUser>) => {
@@ -35,16 +37,31 @@ const createUser = async (payload: Partial<IUser>) => {
 
 
     // const queryBuilder = new QueryBuilder(User.find(), query)
-const getAllUsers = async () => {
+const getAllUsers = async (query: Record<string, string>) => {
 
-    const allUser = await User.find({})
-    const total = await User.countDocuments();
-    const totalUser = Number(total)
+    const queryBuilder = new QueryBuilder(User.find(), query );
 
-    return {       
-        data: allUser,
-        meta: { total: totalUser }
-    }
+    const users = queryBuilder
+        .search(userSearchableFields)
+        .filter()
+        .sort()
+        .fields()
+        .paginate()
+
+    const [data, meta] = await Promise.all([
+        users.build(),
+        queryBuilder.getMeta()
+
+    ])
+
+    // const allUser = await User.find({})
+    // const total = await User.countDocuments();
+    // const totalUser = Number(total)
+
+      return {
+            data,
+            meta
+        }
 }
 
 const getSingleUser = async (UserId: string) => {

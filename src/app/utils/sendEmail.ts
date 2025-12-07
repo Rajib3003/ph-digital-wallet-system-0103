@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { envVar } from "../../config/env";
+import { envVar } from "../config/env";
 import path from "path";
 import ejs from "ejs";
 import nodemailer from "nodemailer";
-import AppError from "../../errorHelpers/AppError";
+import AppError from "../errorHelpers/AppError";
 
 const transporter = nodemailer.createTransport({
     secure: true,
