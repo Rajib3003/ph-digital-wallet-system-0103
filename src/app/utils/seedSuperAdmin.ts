@@ -3,6 +3,7 @@ import { envVar } from "../config/env";
 import { IAuthProvider, IUser, Role } from "../modules/user/user.interface";
 import bcrypt from "bcryptjs";
 import { User } from "../modules/user/user.model";
+import { Wallet } from "../modules/wallet/wallet.model";
 
 
 
@@ -31,7 +32,13 @@ export const seedSuperAdmin = async () => {
             auths: [provider],
         }
 
-        const superAdmin = User.create(payload);
+        const superAdmin = await User.create(payload);
+        const wallet = await Wallet.create({
+            owner: superAdmin._id,
+            balance: 0            
+        });
+        superAdmin.wallet = wallet._id;
+        await superAdmin.save();
 
         console.log("super admin created successfully \n")
         console.log(superAdmin)            

@@ -34,6 +34,7 @@ const getTransactionsByWallet = async (walletId: string) => {
     return transactions;
 }
 const createTransaction = async (transactionData: Partial<ITransaction>) => {
+  
     const transaction = await Transaction.create(transactionData);
     
     return transaction;

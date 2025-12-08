@@ -22,6 +22,7 @@ interface EnvConfig {
     INITIAL_BALANCE: string,
     TRANSACTION_FEE_PERCENT: string,
     AGENT_COMMISSION_PERCENT: string,
+    SUPER_ADMIN_DEFAULT_BALANCE: string,
     EMAIL_SENDER: {
         SMTP_USER: string;
         SMTP_PASS: string;
@@ -59,6 +60,7 @@ const loadEnvVariables = () : EnvConfig => {
         "INITIAL_BALANCE",
         "TRANSACTION_FEE_PERCENT",
         "AGENT_COMMISSION_PERCENT",
+        "SUPER_ADMIN_DEFAULT_BALANCE",
     ]
 
     requiredEnvVariables.forEach(key =>{
@@ -88,6 +90,7 @@ const loadEnvVariables = () : EnvConfig => {
         INITIAL_BALANCE: process.env.INITIAL_BALANCE as string,
         TRANSACTION_FEE_PERCENT: process.env.TRANSACTION_FEE_PERCENT as string,
         AGENT_COMMISSION_PERCENT: process.env.AGENT_COMMISSION_PERCENT as string,
+        SUPER_ADMIN_DEFAULT_BALANCE: process.env.SUPER_ADMIN_DEFAULT_BALANCE as string,
         EMAIL_SENDER: {
             SMTP_USER: process.env.SMTP_USER as string,
             SMTP_PASS: process.env.SMTP_PASS as string,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from "http-status-codes";
 import AppError from "../../errorHelpers/AppError";
 import mongoose from "mongoose";
@@ -5,76 +6,89 @@ import { Wallet } from "./wallet.model";
 import { WalletStatus } from "./wallet.interface";
 import { TransactionService } from "../transaction/transaction.service";
 import { TransactionStatus, TransactionType } from "../transaction/transaction.interface";
+import { Transaction } from "../transaction/transaction.model";
+import { User } from "../user/user.model";
+import { envVar } from "../../config/env";
 
+
+export const getSystemWallet = async () => {
+  const systemUser = await User.findOne({ role: "SUPER_ADMIN" });
+  if (!systemUser) throw new Error("Super Admin not found for system wallet");
+
+  let systemWallet = await Wallet.findOne({ owner: systemUser._id });
+
+  const startingBalance = Number(envVar.SUPER_ADMIN_DEFAULT_BALANCE) || 1000000;
+
+  // Create system wallet if not exists
+  if (!systemWallet) {
+    systemWallet = await Wallet.create({
+      owner: systemUser._id,
+      balance: startingBalance,
+    });
+  }
+
+  // Update balance if 0 (for dev)
+  if (systemWallet.balance <= 0) {
+    systemWallet.balance = startingBalance;
+    await systemWallet.save();
+  }
+
+  return systemWallet;
+};
 
 
 export const depositMoney = async (userId: string, amount?: number) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    try {
-        // Find wallet for user
-        let wallet = await Wallet.findOne({ owner: userId }).session(session);
-
-        // If wallet doesn't exist, create it (Mongoose default balance = 50)
-        if (!wallet) {
-            const createdWallets = await Wallet.create([{
-                owner: userId,
-                status: WalletStatus.ACTIVE
-            }], { session });
-            wallet = createdWallets[0];
-
-            await TransactionService.createTransaction({
-                type: TransactionType.TOPUP,   
-                to: wallet.owner,
-                amount: wallet.balance ?? 50,               
-                status: TransactionStatus.COMPLETED
-            });
-
-        }
-
-        // Ensure balance is a number (default safety)
-        wallet.balance = wallet.balance ?? 50;
-
-        // Check if wallet is blocked
-        if (wallet.status === WalletStatus.BLOCKED) {
-            throw new AppError(StatusCodes.BAD_REQUEST, "Wallet is blocked");
-        }
-
-        // Add deposit if amount is provided
-        if (amount !== undefined) {
-            const numericAmount = Number(amount);
-            if (isNaN(numericAmount) || numericAmount <= 0) {
-                throw new AppError(StatusCodes.BAD_REQUEST, "Deposit amount must be greater than zero");
-            }
-
-            wallet.balance += numericAmount;
-            
-
-            // Create a transaction for this deposit
-            await TransactionService.createTransaction({
-                type: TransactionType.TOPUP,
-                to: wallet.owner,                
-                amount: numericAmount,
-                status: TransactionStatus.COMPLETED
-            });
-        }
-
-        // Save wallet
-        await wallet.save({ session });
-
-        // Commit transaction
-        await session.commitTransaction();
-        session.endSession();
-
-        return wallet;
-
-    } catch (err) {
-        await session.abortTransaction();
-        session.endSession();
-        throw err;
+  try {
+    // Validate amount
+    amount = Number(amount);
+    if (isNaN(amount) || amount <= 0) {
+      amount = Number(process.env.INITIAL_BALANCE) || 50; // default 50
     }
+
+    const userWallet = await Wallet.findOne({ owner: userId }).session(session);
+    if (!userWallet) throw new AppError(404, "User wallet not found");
+
+    const fromWallet = await getSystemWallet();
+
+    if (fromWallet.balance < amount)
+      throw new AppError(400, "System wallet insufficient balance");
+
+    // Update balances
+    fromWallet.balance -= amount;
+    userWallet.balance += amount;
+
+    await fromWallet.save({ session });
+    await userWallet.save({ session });
+
+    // Create transaction record
+    await Transaction.create(
+      [
+        {
+          from: fromWallet._id,
+          to: userWallet._id,
+          amount,
+          type: TransactionType.TOPUP,
+          status: TransactionStatus.COMPLETED,
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return userWallet;
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    throw err;
+  }
 };
+
+
 
  const withdrawMoney = async (userId: string, amount?: number) => {
     const session = await mongoose.startSession();
@@ -246,7 +260,10 @@ export const depositMoney = async (userId: string, amount?: number) => {
         // Commit transaction
         await session.commitTransaction();
         session.endSession();
-        return userWallet;
+        return {
+            userWallet,
+            agentWallet
+        };
     }
     catch (err) {
         await session.abortTransaction();
@@ -300,7 +317,10 @@ export const depositMoney = async (userId: string, amount?: number) => {
         // Commit transaction
         await session.commitTransaction();
         session.endSession();
-        return userWallet;
+        return {
+            userWallet,
+            agentWallet
+        };
     } catch (err) {
         await session.abortTransaction();
         session.endSession();

@@ -1,10 +1,11 @@
+import { JwtPayload } from 'jsonwebtoken';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from "express";
 import catchAsync from "../../utils/catchAsync";
 import { WalletService } from "./wallet.service";
 import sendResponse from "../../utils/sendResponse";
 import { StatusCodes } from "http-status-codes";
-import { JwtPayload } from "jsonwebtoken";
+
 
 
 
@@ -15,16 +16,17 @@ export const depositMoney = catchAsync(async (req: Request, res: Response, next:
 
     const wallet = await WalletService.depositMoney(
         decodeToken?.userId,
-        amount !== undefined ? Number(amount) : undefined
+        amount !== undefined ? Number(amount) : 0
     );
 
     sendResponse(res, {
         success: true,
-        message: amount ? "Money deposited successfully" : "Wallet opened successfully !*!",
+        message: "Money deposited successfully",
         statusCode: StatusCodes.OK,
         data: wallet
     });
 });
+
 
 
 const withdrawMoney = catchAsync( async (req: Request, res: Response, next: NextFunction)=>{
