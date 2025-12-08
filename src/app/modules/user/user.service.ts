@@ -8,8 +8,8 @@ import { QueryBuilder } from "../../utils/QueryBuilder";
 import { userSearchableFields } from "./user.constant";
 
 
-const createUser = async (payload: Partial<IUser>) => {
-    const { email,password, ...rest} = payload;
+const createUser = async (payload: Partial<IUser>) => {    
+    const {role, email,password, ...rest} = payload;
 
     const isUserExist = await User.findOne({email})
 
@@ -24,7 +24,8 @@ const createUser = async (payload: Partial<IUser>) => {
 
     
 
-    const user = await User.create({        
+    const user = await User.create({   
+        role,     
         email,
         password : hashedPassword,
         auths: [authProvider], 

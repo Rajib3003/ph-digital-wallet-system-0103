@@ -79,13 +79,12 @@ export const depositMoney = async (userId: string, amount?: number) => {
  const withdrawMoney = async (userId: string, amount?: number) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-
-    console.log("session===",session)
+    
 
     try {
         // Find wallet for user
         const wallet = await Wallet.findOne({ owner: userId }).session(session);
-        console.log("wallet===",wallet)
+        
         if (!wallet) {
             throw new AppError(StatusCodes.NOT_FOUND, "Wallet not found");
         }
@@ -101,7 +100,7 @@ export const depositMoney = async (userId: string, amount?: number) => {
         if (wallet.balance < numericAmount) {
             throw new AppError(StatusCodes.BAD_REQUEST, "Insufficient balance");
         }
-        console.log("numericAmount===",numericAmount)
+        
         // Deduct amount
         wallet.balance -= numericAmount;
         // Create a transaction for this withdrawal
@@ -181,18 +180,133 @@ export const depositMoney = async (userId: string, amount?: number) => {
     }
 
  }
-//  const blockWallet = () => {
+ const blockWallet = async (walletId : string) => {
+    const wallet = await Wallet.findById(walletId);
+    if(!wallet){
+        throw new AppError(StatusCodes.NOT_FOUND,"Wallet not found !*!");
+    }
+    wallet.status = WalletStatus.BLOCKED;
+    await wallet.save();
+    return wallet;
 
-//  }
-//  const unblockWallet = () => {
+ }
+ const unblockWallet = async (walletId : string) => {
+    const wallet = await Wallet.findById(walletId);
+    if(!wallet){
+        throw new AppError(StatusCodes.NOT_FOUND,"Wallet not found !*!");
+    }
+    wallet.status = WalletStatus.ACTIVE;
+    await wallet.save();
+    return wallet;
+ }
+ const agentCashIn = async (senderAgentId: string, recieverId: string, amount: number) => {   
+    
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        // Find wallets
+        const userWallet = await Wallet.findOne({ owner: recieverId }).session(session);
+        const agentWallet = await Wallet.findOne({ owner: senderAgentId }).session(session);        
+        
+        if (!userWallet) {
+            throw new AppError(StatusCodes.NOT_FOUND, "User's wallet not found");
+        }
+        if (!agentWallet) {
+            throw new AppError(StatusCodes.NOT_FOUND, "Agent's wallet not found");
+        }
+        // Check if wallets are blocked
+        if (userWallet.status === WalletStatus.BLOCKED) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "User's wallet is blocked");
+        }
+        if (agentWallet.status === WalletStatus.BLOCKED) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Agent's wallet is blocked");
+        }
+        // Validate amount
+        const numericAmount = Number(amount);
+        if (isNaN(numericAmount) || numericAmount <= 0) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Cash-in amount must be greater than zero");
+        }
+        if (agentWallet.balance < numericAmount) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Insufficient balance in agent's wallet");
+        }
+        // Perform cash-in
+        agentWallet.balance -= numericAmount;
+        userWallet.balance += numericAmount;
+        // Create a transaction for this cash-in
+        await TransactionService.createTransaction({
+            type: TransactionType.CASHIN,
+            from: agentWallet.owner,
+            to: userWallet.owner,
+            amount: numericAmount,
+            status: TransactionStatus.COMPLETED
+        });
+        // Save wallets
+        await userWallet.save({ session });
+        await agentWallet.save({ session });
+        // Commit transaction
+        await session.commitTransaction();
+        session.endSession();
+        return userWallet;
+    }
+    catch (err) {
+        await session.abortTransaction();
+        session.endSession();
+        throw err;
+    }
 
-//  }
-//  const agentCashIn = () => {
-
-//  }
-//  const agentCashOut = () => {
-
-//  }
+ }
+ const agentCashOut = async (userSenderId: string, agentRecieverId: string, amount: number) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        // Find wallets
+        const userWallet = await Wallet.findOne({ owner: userSenderId }).session(session);
+        const agentWallet = await Wallet.findOne({ owner: agentRecieverId }).session(session);
+        if (!userWallet) {
+            throw new AppError(StatusCodes.NOT_FOUND, "User's wallet not found");
+        }
+        if (!agentWallet) {
+            throw new AppError(StatusCodes.NOT_FOUND, "Agent's wallet not found");
+        }
+        // Check if wallets are blocked
+        if (userWallet.status === WalletStatus.BLOCKED) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "User's wallet is blocked");
+        }
+        if (agentWallet.status === WalletStatus.BLOCKED) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Agent's wallet is blocked");
+        }
+        // Validate amount
+        const numericAmount = Number(amount);
+        if (isNaN(numericAmount) || numericAmount <= 0) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Cash-out amount must be greater than zero");
+        }
+        if (userWallet.balance < numericAmount) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Insufficient balance in user's wallet");
+        }
+        // Perform cash-out
+        userWallet.balance -= numericAmount;
+        agentWallet.balance += numericAmount;
+        // Create a transaction for this cash-out
+        await TransactionService.createTransaction({
+            type: TransactionType.CASHOUT,
+            from: userWallet.owner,
+            to: agentWallet.owner,
+            amount: numericAmount,
+            status: TransactionStatus.COMPLETED
+        });
+        // Save wallets
+        await userWallet.save({ session });
+        await agentWallet.save({ session });
+        // Commit transaction
+        await session.commitTransaction();
+        session.endSession();
+        return userWallet;
+    } catch (err) {
+        await session.abortTransaction();
+        session.endSession();
+        throw err;
+    }
+ }
 
 
 
@@ -200,8 +314,8 @@ export const WalletService = {
     depositMoney,
     withdrawMoney,
     sendMoney,
-    // blockWallet,
-    // unblockWallet,
-    // agentCashIn,
-    // agentCashOut
+    blockWallet,
+    unblockWallet,
+    agentCashIn,
+    agentCashOut
 }

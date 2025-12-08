@@ -42,8 +42,7 @@ const { amount } = req.body;
 }); 
 const sendMoney = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
       const { receiverId, amount } = req.body;
-      const decodeToken = req.user as JwtPayload;
-      console.log("receiverId==========",receiverId)
+      const decodeToken = req.user as JwtPayload;     
 
       const result = await WalletService.sendMoney(decodeToken.userId, receiverId, Number(amount));
 
@@ -54,63 +53,67 @@ const sendMoney = catchAsync(async (req: Request, res: Response, next: NextFunct
         data: result
       });
 }); 
-// const blockWallet = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
-// const { walletId } = req.params;
+const blockWallet = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
+    const { walletId } = req.params;
 
-//       const wallet = await WalletService.blockWallet(walletId);
+     const wallet = await WalletService.blockWallet(walletId);
 
-//       sendResponse(res,{
-//         success: true,
-//         message: "Wallet blocked successfully",
-//         statusCode: StatusCodes.OK,
-//         data: wallet
-//       });
-// }); 
-// const unblockWallet = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
-// const { walletId } = req.params;
+     sendResponse(res,{
+        success: true,
+        message: "Wallet blocked successfully",
+        statusCode: StatusCodes.OK,
+        data: wallet
+      });
+}); 
+const unblockWallet = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
+    const { walletId } = req.params;
 
-//       const wallet = await WalletService.unblockWallet(walletId);
+    const wallet = await WalletService.unblockWallet(walletId);
 
-//       sendResponse(res,{
-//         success: true,
-//         message: "Wallet unblocked successfully",
-//         statusCode: StatusCodes.OK,
-//         data: wallet
-//       });
-// }); 
-// const agentCashIn = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
-// const { userId, amount } = req.body;
-//       const agentId = req.user?.id as string;
+    sendResponse(res,{
+        success: true,
+        message: "Wallet unblocked successfully",
+        statusCode: StatusCodes.OK,
+        data: wallet
+    });
+}); 
+const agentCashIn = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
+    const { recieverId, amount } = req.body;
+    const decodeToken = req.user as JwtPayload;
+    const senderId= decodeToken.userId
 
-//       const wallet = await WalletService.agentCashIn(agentId, userId, Number(amount));
 
-//       sendResponse(res,{
-//         success: true,
-//         message: "Cash-in successful",
-//         statusCode: StatusCodes.OK,
-//         data: wallet
-//       });
-// }); 
-// const agentCashOut = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
-// const { userId, amount } = req.body;
-//       const agentId = req.user?.id as string;
 
-//       const wallet = await WalletService.agentCashOut(agentId, userId, Number(amount));
+    const wallet = await WalletService.agentCashIn(senderId, recieverId, Number(amount));
 
-//       sendResponse(res,{
-//         success: true,
-//         message: "Cash-out successful",
-//         statusCode: StatusCodes.OK,
-//         data: wallet
-//       });
-// }); 
+    sendResponse(res,{
+        success: true,
+        message: "Cash-in successful !*!",
+        statusCode: StatusCodes.OK,
+        data: wallet
+    });
+}); 
+const agentCashOut = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
+    const { agentRecieverId, amount } = req.body;
+    const decodeToken = req.user as JwtPayload;
+    const userSenderId= decodeToken.userId
+
+    const wallet = await WalletService.agentCashOut(userSenderId, agentRecieverId, Number(amount));
+
+    sendResponse(res,{
+        success: true,
+        message: "Cash-out successful",
+        statusCode: StatusCodes.OK,
+        data: wallet
+    });
+}); 
 
 export const WalletController = {
     depositMoney,
     withdrawMoney,
     sendMoney,
-    // blockWallet,
-    // unblockWallet,
-    // agentCashIn,
-    // agentCashOut
+    blockWallet,
+    unblockWallet,
+    agentCashIn,
+    agentCashOut
 }
