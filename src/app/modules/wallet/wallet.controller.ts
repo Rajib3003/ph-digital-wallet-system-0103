@@ -5,7 +5,7 @@ import { WalletService } from "./wallet.service";
 import sendResponse from "../../utils/sendResponse";
 import { StatusCodes } from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
-import AppError from "../../errorHelpers/AppError";
+
 
 
 
@@ -20,39 +20,40 @@ export const depositMoney = catchAsync(async (req: Request, res: Response, next:
 
     sendResponse(res, {
         success: true,
-        message: amount ? "Money deposited successfully" : "Wallet opened successfully",
+        message: amount ? "Money deposited successfully" : "Wallet opened successfully !*!",
         statusCode: StatusCodes.OK,
         data: wallet
     });
 });
 
 
-// const withdrawMoney = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
-// const { amount } = req.body;
-//       const userId = req.user?.id as string;
+const withdrawMoney = catchAsync( async (req: Request, res: Response, next: NextFunction)=>{
+const { amount } = req.body;
+      const decodeToken = req.user as JwtPayload;
 
-//       const wallet = await WalletService.withdrawMoney(userId, Number(amount));
+      const wallet = await WalletService.withdrawMoney(decodeToken.userId, Number(amount));
 
-//       sendResponse(res,{
-//         success: true,
-//         message: "Money withdrawn successfully",
-//         statusCode: StatusCodes.OK,
-//         data: wallet
-//       });
-// }); 
-// const sendMoney = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
-// const { receiverId, amount } = req.body;
-//       const senderId = req.user?.id as string;
+      sendResponse(res,{
+        success: true,
+        message: "Money withdrawn successfully !*!",
+        statusCode: StatusCodes.OK,
+        data: wallet
+      });
+}); 
+const sendMoney = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
+      const { receiverId, amount } = req.body;
+      const decodeToken = req.user as JwtPayload;
+      console.log("receiverId==========",receiverId)
 
-//       const result = await WalletService.sendMoney(senderId, receiverId, Number(amount));
+      const result = await WalletService.sendMoney(decodeToken.userId, receiverId, Number(amount));
 
-//       sendResponse(res,{
-//         success: true,
-//         message: "Money sent successfully",
-//         statusCode: StatusCodes.OK,
-//         data: result
-//       });
-// }); 
+      sendResponse(res,{
+        success: true,
+        message: "Money sent successfully !*!",
+        statusCode: StatusCodes.OK,
+        data: result
+      });
+}); 
 // const blockWallet = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
 // const { walletId } = req.params;
 
@@ -106,8 +107,8 @@ export const depositMoney = catchAsync(async (req: Request, res: Response, next:
 
 export const WalletController = {
     depositMoney,
-    // withdrawMoney,
-    // sendMoney,
+    withdrawMoney,
+    sendMoney,
     // blockWallet,
     // unblockWallet,
     // agentCashIn,

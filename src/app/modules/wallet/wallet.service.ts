@@ -23,6 +23,14 @@ export const depositMoney = async (userId: string, amount?: number) => {
                 status: WalletStatus.ACTIVE
             }], { session });
             wallet = createdWallets[0];
+
+            await TransactionService.createTransaction({
+                type: TransactionType.TOPUP,   
+                to: wallet.owner,
+                amount: wallet.balance ?? 50,               
+                status: TransactionStatus.COMPLETED
+            });
+
         }
 
         // Ensure balance is a number (default safety)
@@ -68,12 +76,111 @@ export const depositMoney = async (userId: string, amount?: number) => {
     }
 };
 
-//  const withdrawMoney = () => {
+ const withdrawMoney = async (userId: string, amount?: number) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-//  }
-//  const sendMoney = () => {
+    console.log("session===",session)
 
-//  }
+    try {
+        // Find wallet for user
+        const wallet = await Wallet.findOne({ owner: userId }).session(session);
+        console.log("wallet===",wallet)
+        if (!wallet) {
+            throw new AppError(StatusCodes.NOT_FOUND, "Wallet not found");
+        }
+        // Check if wallet is blocked
+        if (wallet.status === WalletStatus.BLOCKED) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Wallet is blocked");
+        }
+        // Validate amount
+        const numericAmount = Number(amount);
+        if (isNaN(numericAmount) || numericAmount <= 0) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Withdrawal amount must be greater than zero");
+        }
+        if (wallet.balance < numericAmount) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Insufficient balance");
+        }
+        console.log("numericAmount===",numericAmount)
+        // Deduct amount
+        wallet.balance -= numericAmount;
+        // Create a transaction for this withdrawal
+        await TransactionService.createTransaction({
+            type: TransactionType.WITHDRAW,
+            from: wallet.owner,
+            amount: numericAmount,
+            status: TransactionStatus.COMPLETED
+        }); 
+        // Save wallet
+        await wallet.save({ session });
+        // Commit transaction
+        await session.commitTransaction();
+        session.endSession();
+        return wallet;
+    } catch (err) {
+        await session.abortTransaction();
+        session.endSession();
+        throw err;
+    }
+
+ }
+ const sendMoney = async (senderId: string, receiverId: string, amount:number) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        // Find wallets
+        const senderWallet = await Wallet.findOne({ owner: senderId }).session(session);
+        const receiverWallet = await Wallet.findOne({ owner: receiverId }).session(session);
+
+        if (!senderWallet) {
+            throw new AppError(StatusCodes.NOT_FOUND, "Sender's wallet not found");
+        }
+        if (!receiverWallet) {
+            throw new AppError(StatusCodes.NOT_FOUND, "Receiver's wallet not found");
+        }
+        // Check if wallets are blocked
+        if (senderWallet.status === WalletStatus.BLOCKED) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Sender's wallet is blocked");
+        }
+        if (receiverWallet.status === WalletStatus.BLOCKED) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Receiver's wallet is blocked");
+        }
+        // Validate amount
+        const numericAmount = Number(amount);
+        if (isNaN(numericAmount) || numericAmount <= 0) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Transfer amount must be greater than zero");
+        }
+        if (senderWallet.balance < numericAmount) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Insufficient balance in sender's wallet");
+        }
+        // Perform transfer
+        senderWallet.balance -= numericAmount;
+        receiverWallet.balance += numericAmount;
+        // Create a transaction for this transfer
+        await TransactionService.createTransaction({
+            type: TransactionType.SEND,
+            from: senderWallet.owner,
+            to: receiverWallet.owner,
+            amount: numericAmount,
+            status: TransactionStatus.COMPLETED
+        });
+        // Save wallets
+        await senderWallet.save({ session });
+        await receiverWallet.save({ session });
+        // Commit transaction
+        await session.commitTransaction();
+        session.endSession();
+        return {
+            senderWallet,
+            receiverWallet
+        };
+    } catch (err) {
+        await session.abortTransaction();
+        session.endSession();
+        throw err;
+    }
+
+ }
 //  const blockWallet = () => {
 
 //  }
@@ -91,8 +198,8 @@ export const depositMoney = async (userId: string, amount?: number) => {
 
 export const WalletService = {
     depositMoney,
-    // withdrawMoney,
-    // sendMoney,
+    withdrawMoney,
+    sendMoney,
     // blockWallet,
     // unblockWallet,
     // agentCashIn,

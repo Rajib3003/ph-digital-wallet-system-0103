@@ -13,14 +13,14 @@ const getMyTransactions = catchAsync(async (req: Request, res: Response, next: N
     const decodeToken = req.user as JwtPayload
      
     if(!decodeToken){
-        throw new AppError(StatusCodes.BAD_REQUEST,"DecodeToken not found in request");
+        throw new AppError(StatusCodes.BAD_REQUEST,"DecodeToken not found in request !*!");
     } 
 
       const transactions = await TransactionService.getMyTransactions(decodeToken?.userId);
 
       sendResponse(res,{
         success: true,
-        message: "Your transactions fetched successfully",
+        message: "Your transactions fetched successfully !*!",
         statusCode: StatusCodes.OK,
         data: transactions
       });
@@ -30,31 +30,28 @@ const getAllTransactions = catchAsync(async (req: Request, res: Response, next: 
 
       sendResponse(res,{
         success: true,
-        message: "All transactions fetched successfully",
+        message: "All transactions fetched successfully !*!",
         statusCode: StatusCodes.OK,
         data: transactions
       });
 
 }); 
-const getTransactionsByWallet = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
-const { walletId } = req.params;
-
+const getTransactionsByWallet = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{      
+      const { walletId } = req.params;  
       const transactions = await TransactionService.getTransactionsByWallet(walletId);
-
-      sendResponse(res,{
+      sendResponse(res, {
         success: true,
-        message: "Wallet transactions fetched successfully",
+        message: "Wallet transactions fetched successfully !*!",
         statusCode: StatusCodes.OK,
-        data: transactions
+        data: transactions        
       });
 }); 
 const createTransaction = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
-    const transactionData = req.body;
-    console.log("transaction Data ===", transactionData)
+    const transactionData = req.body;    
         const transaction = await TransactionService.createTransaction(transactionData);
         sendResponse(res,{
             success: true,
-            message: "Transaction created successfully",
+            message: "Transaction created successfully !*!",
             statusCode: StatusCodes.OK,
             data: transaction
         });

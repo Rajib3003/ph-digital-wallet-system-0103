@@ -24,7 +24,7 @@ const getAllTransactions = async () => {
       .populate("to", "name email role");
     return transactions;
 }
-const getTransactionsByWallet = async (walletId: string) => {
+const getTransactionsByWallet = async (walletId: string) => {  
     const transactions = await Transaction.find({
       $or: [{ from: walletId }, { to: walletId }]
     })
