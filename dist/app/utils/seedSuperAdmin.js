@@ -17,6 +17,7 @@ const env_1 = require("../config/env");
 const user_interface_1 = require("../modules/user/user.interface");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const user_model_1 = require("../modules/user/user.model");
+const wallet_model_1 = require("../modules/wallet/wallet.model");
 const seedSuperAdmin = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const isSuperAdminExist = yield user_model_1.User.findOne({ email: env_1.envVar.SUPER_ADMIN_EMAIL });
@@ -38,7 +39,13 @@ const seedSuperAdmin = () => __awaiter(void 0, void 0, void 0, function* () {
             isVerified: true,
             auths: [provider],
         };
-        const superAdmin = user_model_1.User.create(payload);
+        const superAdmin = yield user_model_1.User.create(payload);
+        const wallet = yield wallet_model_1.Wallet.create({
+            owner: superAdmin._id,
+            balance: 0
+        });
+        superAdmin.wallet = wallet._id;
+        yield superAdmin.save();
         console.log("super admin created successfully \n");
         console.log(superAdmin);
     }

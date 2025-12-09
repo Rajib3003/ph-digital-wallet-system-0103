@@ -36,16 +36,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Wallet = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const wallet_interface_1 = require("./wallet.interface");
+const env_1 = require("../../config/env");
 const walletSchema = new mongoose_1.Schema({
     owner: { type: mongoose_1.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
-    balance: { type: Number, default: 50 },
+    balance: {
+        type: Number,
+        default: function () {
+            const val = Number(env_1.envVar.INITIAL_BALANCE);
+            return isNaN(val) ? 0 : val;
+        },
+    },
     status: {
         type: String,
         enum: Object.values(wallet_interface_1.WalletStatus),
-        default: wallet_interface_1.WalletStatus.ACTIVE
-    }
+        default: wallet_interface_1.WalletStatus.ACTIVE,
+    },
 }, {
     timestamps: true,
-    versionKey: false
+    versionKey: false,
 });
 exports.Wallet = mongoose_1.default.model("Wallet", walletSchema);

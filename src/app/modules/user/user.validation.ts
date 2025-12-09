@@ -53,6 +53,13 @@ export const updateUserZodSchema = z.object({
     .optional() ,    
     role: z
     .enum(Object.values(Role) as [string, ...string[]])
-    .optional()
+    .optional(),
+    isVerified: z
+    .boolean()
+    .optional(),
+    isActived: z
+    .enum(["ACTIVE", "INACTIVE", "BLOCKED"] as ["ACTIVE", "INACTIVE", "BLOCKED"])
+    .optional(),
+    
 
 });

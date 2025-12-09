@@ -13,25 +13,21 @@ import { Transaction } from "../transaction/transaction.model";
 import { TransactionStatus, TransactionType } from "../transaction/transaction.interface";
 
 
-const createUser = async (payload: Partial<IUser>) => {    
-
+const createUser = async (payload: Partial<IUser>) => { 
 
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
         const { email, password, ...rest } = payload;
-
-        // 1️⃣ Check if user exists
+        
         const isUserExist = await User.findOne({ email }).session(session);
         if (isUserExist) {
             throw new AppError(409, "User Already Exist!");
         }
-
-        // 2️⃣ Hash password
+        
         const hashedPassword = await bcrypt.hash(password as string, Number(envVar.BCRYPT_SALT_ROUND));
-
-        // 3️⃣ Create user
+        
         const authProvider: IAuthProvider = {provider: 'credentials', providerId: email as string};
         const user = await User.create([{
             email,
@@ -39,30 +35,26 @@ const createUser = async (payload: Partial<IUser>) => {
             auths: [authProvider],
             ...rest
         }], { session });
-
-        // 4️⃣ Create wallet for user with 50 balance
+        
         const wallet = await Wallet.create([{
             owner: user[0]._id,
             balance: Number(envVar.INITIAL_BALANCE) || 0
         }], { session });
-
-        // 5️⃣ Update user with wallet reference
+        
         user[0].wallet = wallet[0]._id;
         await user[0].save({ session });
-
-        // 6️⃣ Deduct 50 from admin wallet
+        
         const superAdmin = await User.findOne({ role: Role.SUPER_ADMIN });
-if (!superAdmin) throw new AppError(500, "Super Admin not found");
-        const adminWallet = await Wallet.findOne({ owner: superAdmin._id }).session(session);
-if (!adminWallet) throw new AppError(400, "Admin wallet not found");
-        console.log("test",adminWallet)
+        if (!superAdmin) throw new AppError(500, "Super Admin not found");
+                const adminWallet = await Wallet.findOne({ owner: superAdmin._id }).session(session);
+        if (!adminWallet) throw new AppError(400, "Admin wallet not found");
+        
         if (!adminWallet || adminWallet.balance < (envVar.INITIAL_BALANCE ? Number(envVar.INITIAL_BALANCE) : 0)) {
             throw new AppError(400, "Admin balance insufficient");
         }
         adminWallet.balance -= envVar.INITIAL_BALANCE ? Number(envVar.INITIAL_BALANCE) : 0;
         await adminWallet.save({ session });
-
-        // 7️⃣ Create transaction record
+        
         await Transaction.create([{
             from: adminWallet._id,
             to: wallet[0]._id,
@@ -73,7 +65,6 @@ if (!adminWallet) throw new AppError(400, "Admin wallet not found");
 
         await session.commitTransaction();
         session.endSession();
-
         return user[0];
 
     } catch (error: any) {
@@ -83,10 +74,6 @@ if (!adminWallet) throw new AppError(400, "Admin wallet not found");
     }
 }
 
-// const getAllUsers = async (query: Record<string, string>) => {
-
-
-    // const queryBuilder = new QueryBuilder(User.find(), query)
 const getAllUsers = async (query: Record<string, string>) => {
 
     const queryBuilder = new QueryBuilder(User.find(), query );
@@ -101,17 +88,11 @@ const getAllUsers = async (query: Record<string, string>) => {
     const [data, meta] = await Promise.all([
         users.build(),
         queryBuilder.getMeta()
-
     ])
-
-    // const allUser = await User.find({})
-    // const total = await User.countDocuments();
-    // const totalUser = Number(total)
-
-      return {
-            data,
-            meta
-        }
+    return {
+        data,
+        meta
+    }
 }
 
 const getSingleUser = async (UserId: string) => {
@@ -128,13 +109,12 @@ const deleteUser = async (UserId: string) => {
     return null
 }
 
-const updatedUser = async (UserId: string , payload: Partial<IUser>) => {
-    const user = await User.findById(UserId)
+const updatedUser = async (UserId: string , payload: Partial<IUser>) => {    
+    
 
     const userResult = await User.findByIdAndUpdate(UserId, payload, {new: true, runValidators: true})
 
-    console.log(user)
-    console.log(userResult)
+    
 
     return userResult
     
