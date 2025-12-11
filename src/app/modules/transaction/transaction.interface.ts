@@ -29,9 +29,8 @@ export interface ITransaction extends Document{
   to?: mongoose.Types.ObjectId;   // receiver
   amount: number;
   fee?: number;
-  status: TransactionStatus;
-  receiver?: string;
-  sender?: string;  
+  totalTransactionAmount?: number;
+  status: TransactionStatus;  
   createdAt?: Date;
   updatedAt?: Date;
 }

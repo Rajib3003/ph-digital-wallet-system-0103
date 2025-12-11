@@ -48,8 +48,7 @@ const getTransactionsByWallet = catchAsync(async (req: Request, res: Response, n
 }); 
 const createTransaction = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
     const transactionData = req.body;    
-        const transaction = await TransactionService.createTransaction(transactionData);
-        console.log("transaction====",transaction)
+        const transaction = await TransactionService.createTransaction(transactionData);        
         sendResponse(res,{
             success: true,
             message: "Transaction created successfully !*!",

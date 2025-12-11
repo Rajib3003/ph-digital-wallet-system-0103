@@ -20,6 +20,7 @@ const transactionSchema = new Schema<ITransaction>({
   to: { type: Schema.Types.ObjectId, ref: 'Wallet', required: true },
   amount: { type: Number, required: true },
   fee: { type: Number, default: 0 },
+  totalTransactionAmount: { type: Number, required: true },
   status: { type: String, enum: Object.values(TransactionStatus), default: TransactionStatus.COMPLETED }
 }, { 
     timestamps: true ,
