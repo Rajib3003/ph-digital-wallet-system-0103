@@ -15,18 +15,24 @@ const getMyTransactions = catchAsync(async (req: Request, res: Response, next: N
     if(!decodeToken){
         throw new AppError(StatusCodes.BAD_REQUEST,"DecodeToken not found in request !*!");
     } 
+    const userId = decodeToken?.userId
+    const query = req.query
 
-      const transactions = await TransactionService.getMyTransactions(decodeToken?.userId);
 
-      sendResponse(res,{
-        success: true,
-        message: "Your transactions fetched successfully !*!",
-        statusCode: StatusCodes.OK,
-        data: transactions
-      });
+    const result = await TransactionService.getMyTransactions(userId,query as Record<string, string>);
+
+    sendResponse(res,{
+      success: true,
+      message: "Your transactions fetched successfully !*!",
+      statusCode: StatusCodes.OK,
+      meta: result.meta,
+      data: result.data,
+    });
 }); 
 const getAllTransactions = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
+  
     const transactions = await TransactionService.getAllTransactions();
+    
 
       sendResponse(res,{
         success: true,

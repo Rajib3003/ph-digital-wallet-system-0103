@@ -21,6 +21,11 @@ const createTransactionRecord = async (
   status: TransactionStatus,
   session: mongoose.ClientSession
 ) => {
+    const fromWallet = await Wallet.findById(fromWalletId).session(session);
+  const toWallet = await Wallet.findById(toWalletId).session(session);
+    if (!fromWallet || !toWallet) {
+    throw new Error("Wallet not found");
+  }
     let fee = 0;
     if (type === TransactionType.CASHOUT) {
         fee = Number((amount * Number(envVar.TRANSACTION_FEE_PERCENT)).toFixed(2));
@@ -33,8 +38,8 @@ const createTransactionRecord = async (
   await Transaction.create(
     [
       {
-        from: fromWalletId,
-        to: toWalletId,
+        from: fromWallet.owner, // <-- User ID
+        to: toWallet.owner,
         amount,
         fee,
         totalTransactionAmount,
@@ -48,7 +53,7 @@ const createTransactionRecord = async (
 };
 
 
-export const depositMoney = async (userId: string, amount?: number) => {
+const depositMoney = async (userId: string, amount?: number) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -74,19 +79,6 @@ export const depositMoney = async (userId: string, amount?: number) => {
     await fromWallet.save({ session });
     await userWallet.save({ session });
 
-    // Create transaction record
-    // await Transaction.create(
-    //   [
-    //     {
-    //       from: fromWallet._id,
-    //       to: userWallet._id,
-    //       amount,
-    //       type: TransactionType.TOPUP,
-    //       status: TransactionStatus.COMPLETED,
-    //     },
-    //   ],
-    //   { session }
-    // );
     await createTransactionRecord(
       fromWallet._id,
       userWallet._id,
@@ -109,54 +101,61 @@ export const depositMoney = async (userId: string, amount?: number) => {
 
 
 
- const withdrawMoney = async (userId: string, amount?: number) => {
+ const withdrawMoney = async (userId: string, recieveId: string, amount: number ) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-    
+
 
     try {
-        // Find wallet for user
-        const wallet = await Wallet.findOne({ owner: userId }).session(session);
         
-        if (!wallet) {
+        // Find wallet for user
+        const userWallet = await Wallet.findOne({ owner: userId }).session(session);
+        
+        if (!userWallet) {
             throw new AppError(StatusCodes.NOT_FOUND, "Wallet not found");
         }
+        const recieverWallet = await Wallet.findOne({owner: recieveId}).session(session)
+        
+        if(!recieverWallet){
+            throw new AppError(StatusCodes.NOT_FOUND,"Reciever Wallet not found")
+        }
         // Check if wallet is blocked
-        if (wallet.status === WalletStatus.BLOCKED) {
+        if (userWallet.status === WalletStatus.BLOCKED) {
             throw new AppError(StatusCodes.BAD_REQUEST, "Wallet is blocked");
+        }
+        if (recieverWallet.status === WalletStatus.BLOCKED) {
+            throw new AppError(StatusCodes.BAD_REQUEST, "Reciever Wallet is blocked");
         }
         // Validate amount
         const numericAmount = Number(amount);
         if (isNaN(numericAmount) || numericAmount <= 0) {
             throw new AppError(StatusCodes.BAD_REQUEST, "Withdrawal amount must be greater than zero");
         }
-        if (wallet.balance < numericAmount) {
+        if (userWallet.balance < numericAmount) {
             throw new AppError(StatusCodes.BAD_REQUEST, "Insufficient balance");
         }
         
         // Deduct amount
-        wallet.balance -= numericAmount;
-        // Create a transaction for this withdrawal
-        // await TransactionService.createTransaction({
-        //     type: TransactionType.WITHDRAW,
-        //     from: wallet.owner,
-        //     amount: numericAmount,
-        //     status: TransactionStatus.COMPLETED
-        // }); 
+        userWallet.balance -= numericAmount;
+        recieverWallet.balance +=numericAmount;
+      
         await createTransactionRecord(
-            wallet._id,
-            new mongoose.Types.ObjectId(), // No receiver for withdrawal
+            userWallet._id,
+            recieverWallet._id,            
             numericAmount,
             TransactionType.WITHDRAW,
             TransactionStatus.COMPLETED,
             session
           );
         // Save wallet
-        await wallet.save({ session });
+        await userWallet.save({ session });
         // Commit transaction
         await session.commitTransaction();
         session.endSession();
-        return wallet;
+        return {
+            userWallet,
+            recieverWallet
+        };
     } catch (err) {
         await session.abortTransaction();
         session.endSession();

@@ -14,19 +14,11 @@ export enum TransactionStatus {
   FAILED = "FAILED"
 }
 
-// export interface ITransaction extends Document {
-//   type: TransactionType;
-//   from?: mongoose.Types.ObjectId; // sender or agent
-//   to?: mongoose.Types.ObjectId;   // receiver
-//   amount: number;
-//   fee?: number;
-//   status: TransactionStatus;
-// }
 
 export interface ITransaction extends Document{
   type: TransactionType;
-  from?: mongoose.Types.ObjectId; // sender or agent
-  to?: mongoose.Types.ObjectId;   // receiver
+  from?: mongoose.Types.ObjectId; 
+  to?: mongoose.Types.ObjectId;   
   amount: number;
   fee?: number;
   totalTransactionAmount?: number;

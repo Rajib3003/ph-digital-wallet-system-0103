@@ -16,8 +16,9 @@ import { ITransaction, TransactionStatus, TransactionType } from "./transaction.
 
 const transactionSchema = new Schema<ITransaction>({
   type: { type: String, enum: Object.values(TransactionType), required: true },
-  from: { type: Schema.Types.ObjectId, ref: 'Wallet', required: true },
-  to: { type: Schema.Types.ObjectId, ref: 'Wallet', required: true },
+  from: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+to: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+
   amount: { type: Number, required: true },
   fee: { type: Number, default: 0 },
   totalTransactionAmount: { type: Number, required: true },

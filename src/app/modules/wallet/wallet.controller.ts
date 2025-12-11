@@ -30,17 +30,19 @@ export const depositMoney = catchAsync(async (req: Request, res: Response, next:
 
 
 const withdrawMoney = catchAsync( async (req: Request, res: Response, next: NextFunction)=>{
-const { amount } = req.body;
-      const decodeToken = req.user as JwtPayload;
+    const {id,amount} = req.body;
 
-      const wallet = await WalletService.withdrawMoney(decodeToken.userId, Number(amount));
+    const decodeToken = req.user as JwtPayload;
+    const userId = decodeToken.userId;
 
-      sendResponse(res,{
-        success: true,
-        message: "Money withdrawn successfully !*!",
-        statusCode: StatusCodes.OK,
-        data: wallet
-      });
+    const wallet = await WalletService.withdrawMoney(userId,id,amount);
+
+    sendResponse(res,{
+    success: true,
+    message: "Money withdrawn successfully !*!",
+    statusCode: StatusCodes.OK,
+    data: wallet
+    });
 }); 
 const sendMoney = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
       const { receiverId, amount } = req.body;
