@@ -1,0 +1,1 @@
+export const walletSearchableFields = ["type", "status", "from.name", "to.name"];

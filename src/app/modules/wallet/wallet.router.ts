@@ -14,5 +14,6 @@ router.patch("/block/:walletId", checkAuth(Role.ADMIN), WalletController.blockWa
 router.patch("/unblock/:walletId", checkAuth(Role.ADMIN), WalletController.unblockWallet);
 router.post("/agent/cash-in", checkAuth(Role.AGENT), WalletController.agentCashIn);
 router.post("/agent/cash-out", checkAuth(Role.USER,Role.AGENT), WalletController.agentCashOut);
+router.post("/agent/commission-history", checkAuth(Role.ADMIN,Role.SUPER_ADMIN,Role.AGENT), WalletController.getCommissionHistory);
 
 export const WalletRoutes = router;

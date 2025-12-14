@@ -7,7 +7,7 @@ import { ITransaction, TransactionStatus, TransactionType } from "./transaction.
 //   from: { type: Schema.Types.ObjectId, ref: 'User' },
 //   to: { type: Schema.Types.ObjectId, ref: 'User' },
 //   amount: { type: Number, required: true },
-//   fee: { type: Number, default: 0 },
+//   commission: { type: Number, default: 0 },
 //   status: { type: String, enum: Object.values(TransactionStatus), default: TransactionStatus.PENDING }
 // }, { 
 //     timestamps: true ,
@@ -17,10 +17,10 @@ import { ITransaction, TransactionStatus, TransactionType } from "./transaction.
 const transactionSchema = new Schema<ITransaction>({
   type: { type: String, enum: Object.values(TransactionType), required: true },
   from: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-to: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-
+  to: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   amount: { type: Number, required: true },
-  fee: { type: Number, default: 0 },
+  agentCommission: { type: Number, default: 0 },
+  companyCommission: { type: Number, default: 0 },
   totalTransactionAmount: { type: Number, required: true },
   status: { type: String, enum: Object.values(TransactionStatus), default: TransactionStatus.COMPLETED }
 }, { 

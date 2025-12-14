@@ -1,14 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from "http-status-codes";
 import AppError from "../../errorHelpers/AppError";
 import mongoose from "mongoose";
 import { Wallet } from "./wallet.model";
 import { WalletStatus } from "./wallet.interface";
-import { TransactionStatus, TransactionType } from "../transaction/transaction.interface";
+import { ITransactionOptions, TransactionStatus, TransactionType } from "../transaction/transaction.interface";
 import { Transaction } from "../transaction/transaction.model";
 import { getSystemWallet } from "../../utils/getSystemWallet";
 import { envVar } from "../../config/env";
 import { User } from "../user/user.model";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { walletSearchableFields } from "./wallet.constant";
 
 
 
@@ -16,40 +17,40 @@ import { User } from "../user/user.model";
 const createTransactionRecord = async (
   fromWalletId: mongoose.Types.ObjectId,
   toWalletId: mongoose.Types.ObjectId,
-  amount: number,
+  amount: number,  
   type: TransactionType,
   status: TransactionStatus,
-  session: mongoose.ClientSession
+  session: mongoose.ClientSession,
+  options?: ITransactionOptions,
 ) => {
     const fromWallet = await Wallet.findById(fromWalletId).session(session);
   const toWallet = await Wallet.findById(toWalletId).session(session);
     if (!fromWallet || !toWallet) {
     throw new Error("Wallet not found");
   }
-    let fee = 0;
-    if (type === TransactionType.CASHOUT) {
-        fee = Number((amount * Number(envVar.TRANSACTION_FEE_PERCENT)).toFixed(2));
-    }
-    if (type === TransactionType.SEND) {
-        fee = Number(5);
-    }
-    const totalTransactionAmount = amount + fee
+
+  const agentCommission = options?.agentCommission || 0;
+  const companyCommission = options?.companyCommission || 0;
+  const totalTransactionAmount = amount + agentCommission + companyCommission;
+    
+    
 
   await Transaction.create(
     [
       {
-        from: fromWallet.owner, // <-- User ID
+        from: fromWallet.owner, 
         to: toWallet.owner,
         amount,
-        fee,
-        totalTransactionAmount,
+        agentCommission,
+        companyCommission,
+        totalTransactionAmount,        
         type,
         status,
       },
     ],
     { session }
   );
-  return fee;
+  return { agentCommission, companyCommission };
 };
 
 
@@ -209,26 +210,35 @@ const depositMoney = async (userId: string, amount?: number) => {
         if (senderWallet.balance < numericAmount) {
             throw new AppError(StatusCodes.BAD_REQUEST, "Insufficient balance in sender's wallet");
         }
-          const fee = await createTransactionRecord(
+
+        const commissionRate = Number(envVar.SEND_MONEY_COMMISSION); // 5 taka
+        const commissionAmount = commissionRate;
+
+
+         
+          const totalDeduction = numericAmount + commissionAmount;
+          if (senderWallet.balance < totalDeduction) {
+            throw new AppError(
+              StatusCodes.BAD_REQUEST,
+              `Insufficient balance. Required: ${totalDeduction}`
+            );
+          }
+        // Perform transfer
+        senderWallet.balance -= totalDeduction;
+        receiverWallet.balance += numericAmount;
+        superAdminWallet.balance += commissionAmount;
+
+       const commission = await createTransactionRecord(
             senderWallet._id,
             receiverWallet._id,
             numericAmount,
             TransactionType.SEND,
             TransactionStatus.COMPLETED,
-            session
+            session,
+              {
+                companyCommission: commissionAmount > 0 ? commissionAmount : undefined
+              }
           );
-          const totalDeduction = numericAmount + fee;
-            if (senderWallet.balance < totalDeduction) {
-      throw new AppError(
-        StatusCodes.BAD_REQUEST,
-        `Insufficient balance. Required: ${totalDeduction}`
-      );
-    }
-        // Perform transfer
-        senderWallet.balance -= totalDeduction;
-        receiverWallet.balance += numericAmount;
-        superAdminWallet.balance += fee;
-      
       
         // Save wallets
         await senderWallet.save({ session });
@@ -241,7 +251,7 @@ const depositMoney = async (userId: string, amount?: number) => {
             senderWallet,
             receiverWallet,
             superAdminWallet,
-            fee
+            commission
         };
     } catch (err) {
         await session.abortTransaction();
@@ -276,7 +286,24 @@ const depositMoney = async (userId: string, amount?: number) => {
     try {
         // Find wallets
         const userWallet = await Wallet.findOne({ owner: recieverId }).session(session);
-        const agentWallet = await Wallet.findOne({ owner: senderAgentId }).session(session);        
+        const agentWallet = await Wallet.findOne({ owner: senderAgentId }).session(session);   
+        const superAdmin = await User.findOne({ role: "SUPER_ADMIN" }).session(session);
+
+        if (!superAdmin) {
+            throw new AppError(StatusCodes.NOT_FOUND, "SuperAdmin user not found");
+        }
+        
+        const superAdminWalletId = superAdmin.wallet;
+
+        if (!superAdminWalletId) {
+            throw new AppError(StatusCodes.NOT_FOUND, "SuperAdmin wallet ID missing in user");
+        }
+        
+        const superAdminWallet = await Wallet.findById(superAdminWalletId).session(session);
+
+        if (!superAdminWallet) {
+            throw new AppError(StatusCodes.NOT_FOUND, "SuperAdmin wallet not found");
+        }     
         
         if (!userWallet) {
             throw new AppError(StatusCodes.NOT_FOUND, "User's wallet not found");
@@ -299,34 +326,39 @@ const depositMoney = async (userId: string, amount?: number) => {
         if (agentWallet.balance < numericAmount) {
             throw new AppError(StatusCodes.BAD_REQUEST, "Insufficient balance in agent's wallet");
         }
-        // Perform cash-in
+
+        const commissionRate = Number(envVar.AGENT_COMMISSION_PERCENT); // 1%
+        const commissionAmount = numericAmount * commissionRate;
+
         agentWallet.balance -= numericAmount;
         userWallet.balance += numericAmount;
-        // Create a transaction for this cash-in
-        // await TransactionService.createTransaction({
-        //     type: TransactionType.CASHIN,
-        //     from: agentWallet.owner,
-        //     to: userWallet.owner,
-        //     amount: numericAmount,
-        //     status: TransactionStatus.COMPLETED
-        // });
+        if (commissionAmount > 0) {
+        superAdminWallet.balance -= commissionAmount;
+        agentWallet.balance += commissionAmount;
+        }
         await createTransactionRecord(
             agentWallet._id,
             userWallet._id,
-            numericAmount,
+            numericAmount,            
             TransactionType.CASHIN,
             TransactionStatus.COMPLETED,
-            session
+            session,
+             {
+              agentCommission: commissionAmount > 0 ? commissionAmount : undefined,
+             }
           );
         // Save wallets
         await userWallet.save({ session });
         await agentWallet.save({ session });
+        await superAdminWallet.save({ session });
         // Commit transaction
         await session.commitTransaction();
         session.endSession();
         return {
             userWallet,
-            agentWallet
+            agentWallet,
+            superAdminWallet,
+            commissionAmount
         };
     }
     catch (err) {
@@ -387,16 +419,16 @@ const agentCashOut = async (
         throw new AppError(StatusCodes.BAD_REQUEST, "Cash-out amount must be greater than zero");
     }
 
-    const fee = await createTransactionRecord(
-        userWallet._id,
-        agentWallet._id,
-        numericAmount,
-        TransactionType.CASHOUT,
-        TransactionStatus.COMPLETED,
-        session
-    );
+    const agentCommissionRate = Number(envVar.AGENT_COMMISSION_PERCENT); // 1%
+    const companyCommissionRate = Number(envVar.TRANSACTION_FEE_PERCENT); // 0.085%    
+    const agentCommissionAmount = numericAmount * agentCommissionRate;
+    const companyCommissionAmount =Number((numericAmount * companyCommissionRate).toFixed(2));
+    const totalCommissionAmount = agentCommissionAmount + companyCommissionAmount;
 
-    const totalDeduction = numericAmount + fee;
+    
+
+
+    const totalDeduction = numericAmount + totalCommissionAmount;
 
     // Check balance including charge
     if (userWallet.balance < totalDeduction) {
@@ -412,8 +444,23 @@ const agentCashOut = async (
     // Add only the amount to agent
     agentWallet.balance += numericAmount;
 
-    // Add the fee to SuperAdmin
-    superAdminWallet.balance += fee;
+    // Add the commission to SuperAdmin
+    superAdminWallet.balance += companyCommissionAmount;
+    // Add only the amount to agent
+    agentWallet.balance += agentCommissionAmount;
+
+ const commission = await createTransactionRecord(
+        userWallet._id,
+        agentWallet._id,
+        numericAmount,        
+        TransactionType.CASHOUT,
+        TransactionStatus.COMPLETED,
+        session,
+      {
+        agentCommission: agentCommissionAmount > 0 ? agentCommissionAmount : undefined,
+        companyCommission: companyCommissionAmount > 0 ? companyCommissionAmount : undefined
+      }
+    );
 
     // Save wallets
     await userWallet.save({ session });
@@ -423,13 +470,44 @@ const agentCashOut = async (
     await session.commitTransaction();
     session.endSession();
 
-    return { userWallet, agentWallet, superAdminWallet, fee };
+    return { userWallet, agentWallet, superAdminWallet, commission };
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
     throw err;
   }
 };
+
+const getCommissionHistory = async (currentUserId: string, query: Record<string, string>) => {
+  const currentUserWallet = await Wallet.findOne({ owner: currentUserId });
+if (!currentUserWallet) throw new AppError(404, "Agent wallet not found");
+
+const currentOwnerId = currentUserWallet.owner;
+  // const agentObjectId = new mongoose.Types.ObjectId(agentId)  
+  console.log("agentObjectId====",currentOwnerId)
+ const baseQuery = Transaction.find({
+  $or: [
+    { to: currentOwnerId },
+    { from: currentOwnerId }
+  ]
+})
+// .populate({ path: "from", select: "name email role" })
+// .populate({ path: "to", select: "name email role" })
+.sort({ createdAt: -1 }); 
+  const queryBuilder = new QueryBuilder(baseQuery, query);  
+  const agentQuery = queryBuilder
+        .search(walletSearchableFields)
+        .filter()
+        .sort()
+        .fields()
+        .paginate();        
+
+  const [data, meta] = await Promise.all([
+    agentQuery.build(),   
+    queryBuilder.getMeta()   
+  ]);   
+  return { data, meta };
+}
 
 
 
@@ -440,5 +518,6 @@ export const WalletService = {
     blockWallet,
     unblockWallet,
     agentCashIn,
-    agentCashOut
+    agentCashOut,
+    getCommissionHistory
 }

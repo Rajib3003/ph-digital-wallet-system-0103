@@ -111,6 +111,20 @@ const agentCashOut = catchAsync(async (req: Request, res: Response, next: NextFu
         data: wallet
     });
 }); 
+const getCommissionHistory = catchAsync(async(req: Request, res: Response, next: NextFunction)=> {
+    const decodeToken = req.user as JwtPayload;
+    const currentUserId= decodeToken.userId
+    const query = req.query
+    const result = await WalletService.getCommissionHistory( currentUserId,query as Record<string, string> );
+
+     sendResponse(res,{
+        success: true,
+        message: "commission history successful !*!",
+        statusCode: StatusCodes.OK,
+        meta: result.meta,
+        data: result.data,
+    });
+})
 
 export const WalletController = {
     depositMoney,
@@ -119,5 +133,6 @@ export const WalletController = {
     blockWallet,
     unblockWallet,
     agentCashIn,
-    agentCashOut
+    agentCashOut,
+    getCommissionHistory
 }

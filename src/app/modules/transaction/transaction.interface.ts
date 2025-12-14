@@ -5,7 +5,8 @@ export enum TransactionType {
   WITHDRAW = "WITHDRAW",
   SEND = "SEND",
   CASHIN = "CASHIN",
-  CASHOUT = "CASHOUT"
+  CASHOUT = "CASHOUT",
+  COMMISSION = "COMMISSION"
 }
 
 export enum TransactionStatus {
@@ -14,13 +15,19 @@ export enum TransactionStatus {
   FAILED = "FAILED"
 }
 
+export interface ITransactionOptions {
+  agentCommission?: number;   // optional
+  companyCommission?: number; // optional
+}
+
 
 export interface ITransaction extends Document{
   type: TransactionType;
   from?: mongoose.Types.ObjectId; 
   to?: mongoose.Types.ObjectId;   
   amount: number;
-  fee?: number;
+  agentCommission?: number;    
+  companyCommission?: number;  
   totalTransactionAmount?: number;
   status: TransactionStatus;  
   createdAt?: Date;
