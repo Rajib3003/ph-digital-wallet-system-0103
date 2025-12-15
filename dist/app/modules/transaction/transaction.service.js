@@ -8,12 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TransactionService = void 0;
-const mongoose_1 = __importDefault(require("mongoose"));
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
 const transaction_constant_1 = require("./transaction.constant");
 const transaction_model_1 = require("./transaction.model");
@@ -49,42 +45,31 @@ const transaction_model_1 = require("./transaction.model");
 //       data
 //     };
 // };
-const getMyTransactions = (userId, query) => __awaiter(void 0, void 0, void 0, function* () {
-    // Ensure userId is ObjectId
-    const userObjectId = new mongoose_1.default.Types.ObjectId(userId);
-    // Base query: find transactions where the user is sender or receiver
-    const baseQuery = transaction_model_1.Transaction.find({
-        $or: [{ from: userObjectId }, { to: userObjectId }]
-    })
-        .populate({ path: "from", select: "name email role" }) // populate from
-        .populate({ path: "to", select: "name email role" }) // populate to
+const getMyTransactions = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield transaction_model_1.Transaction.find({ $or: [{ from: userId }, { to: userId }] })
+        .populate("from", "name email role")
+        .populate("to", "name email role")
         .sort({ createdAt: -1 });
-    // .populate("from","name email role")
-    // .populate("to", "name email role")
-    // .sort({ createdAt: -1 }); 
-    // Initialize QueryBuilder with base query and request query parameters
-    const queryBuilder = new QueryBuilder_1.QueryBuilder(baseQuery, query);
-    // Apply search, filter, sort, fields, and pagination
+    // const [data, meta] = await Promise.all([
+    //       result.build(),
+    //       queryBuilder.getMeta()
+    //   ]);
+    const total = result.length;
+    return { data: result, total };
+});
+const getAllTransactions = (query) => __awaiter(void 0, void 0, void 0, function* () {
+    const queryBuilder = new QueryBuilder_1.QueryBuilder(transaction_model_1.Transaction.find(), query);
     const transactionsQuery = queryBuilder
         .search(transaction_constant_1.transactionSearchableFields)
         .filter()
         .sort()
         .fields()
         .paginate();
-    // Execute query and get meta data in parallel
     const [data, meta] = yield Promise.all([
-        transactionsQuery.build(), // executes the query
-        queryBuilder.getMeta() // get pagination info
+        transactionsQuery.build(),
+        queryBuilder.getMeta()
     ]);
-    console.log("baseQuery", data);
     return { data, meta };
-});
-const getAllTransactions = () => __awaiter(void 0, void 0, void 0, function* () {
-    const transactions = yield transaction_model_1.Transaction.find({})
-        .sort({ createdAt: -1 })
-        .populate("from", "name email role")
-        .populate("to", "name email role");
-    return transactions;
 });
 const getTransactionsByWallet = (walletId) => __awaiter(void 0, void 0, void 0, function* () {
     const transactions = yield transaction_model_1.Transaction.find({

@@ -8,7 +8,7 @@ const router = Router();
 
 
 router.get("/me", checkAuth(Role.USER, Role.AGENT), TransactionController.getMyTransactions);
-router.get("/all", checkAuth(Role.ADMIN), TransactionController.getAllTransactions);
+router.get("/all", checkAuth(Role.ADMIN,Role.SUPER_ADMIN), TransactionController.getAllTransactions);
 router.get("/wallet/:walletId", checkAuth(Role.ADMIN), TransactionController.getTransactionsByWallet);
 
 export const TransactionRoutes = router;

@@ -24,23 +24,31 @@ const getMyTransactions = (0, catchAsync_1.default)((req, res, next) => __awaite
         throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "DecodeToken not found in request !*!");
     }
     const userId = decodeToken === null || decodeToken === void 0 ? void 0 : decodeToken.userId;
-    const query = req.query;
-    const result = yield transaction_service_1.TransactionService.getMyTransactions(userId, query);
+    // const query = req.query
+    // console.log("query result",query)
+    const result = yield transaction_service_1.TransactionService.getMyTransactions(userId);
     (0, sendResponse_1.default)(res, {
         success: true,
         message: "Your transactions fetched successfully !*!",
         statusCode: http_status_codes_1.StatusCodes.OK,
-        meta: result.meta,
         data: result.data,
+        meta: {
+            page: 1,
+            limit: result.data.length, // or 0 if empty
+            total: result.total,
+            totalPage: 1
+        }
     });
 }));
 const getAllTransactions = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const transactions = yield transaction_service_1.TransactionService.getAllTransactions();
+    const query = req.query;
+    const result = yield transaction_service_1.TransactionService.getAllTransactions(query);
     (0, sendResponse_1.default)(res, {
         success: true,
         message: "All transactions fetched successfully !*!",
         statusCode: http_status_codes_1.StatusCodes.OK,
-        data: transactions
+        meta: result.meta,
+        data: result.data,
     });
 }));
 const getTransactionsByWallet = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

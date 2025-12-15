@@ -16,30 +16,37 @@ const getMyTransactions = catchAsync(async (req: Request, res: Response, next: N
         throw new AppError(StatusCodes.BAD_REQUEST,"DecodeToken not found in request !*!");
     } 
     const userId = decodeToken?.userId
-    const query = req.query
+    // const query = req.query
+    // console.log("query result",query)
 
 
-    const result = await TransactionService.getMyTransactions(userId,query as Record<string, string>);
+    const result = await TransactionService.getMyTransactions(userId);
 
     sendResponse(res,{
       success: true,
       message: "Your transactions fetched successfully !*!",
       statusCode: StatusCodes.OK,
-      meta: result.meta,
       data: result.data,
+      meta: {
+        page: 1,
+        limit: result.data.length, // or 0 if empty
+        total: result.total,
+        totalPage: 1
+    }
     });
 }); 
 const getAllTransactions = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
+  const query = req.query
+  const result = await TransactionService.getAllTransactions(query as Record<string, string>);
   
-    const transactions = await TransactionService.getAllTransactions();
-    
 
-      sendResponse(res,{
-        success: true,
-        message: "All transactions fetched successfully !*!",
-        statusCode: StatusCodes.OK,
-        data: transactions
-      });
+    sendResponse(res,{
+      success: true,
+      message: "All transactions fetched successfully !*!",
+      statusCode: StatusCodes.OK,
+      meta: result.meta,
+      data: result.data,
+    });
 
 }); 
 const getTransactionsByWallet = catchAsync(async (req: Request, res: Response, next: NextFunction)=>{      
