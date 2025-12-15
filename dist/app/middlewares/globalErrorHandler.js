@@ -1,4 +1,5 @@
 "use strict";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -10,7 +11,7 @@ const AppError_1 = __importDefault(require("../errorHelpers/AppError"));
 const handlerDuplicatedError_1 = require("../helpers/handlerDuplicatedError");
 const handlerValidationError_1 = require("../helpers/handlerValidationError");
 const handlerCastError_1 = require("../helpers/handlerCastError");
-const globalErrorHandler = (error, req, res) => {
+const globalErrorHandler = (error, req, res, next) => {
     let statusCode = 500;
     let message = "Something went wrong !*!";
     let errorSources = undefined;
