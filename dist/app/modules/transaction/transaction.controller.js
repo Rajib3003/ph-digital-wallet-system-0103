@@ -23,12 +23,15 @@ const getMyTransactions = (0, catchAsync_1.default)((req, res, next) => __awaite
     if (!decodeToken) {
         throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "DecodeToken not found in request !*!");
     }
-    const transactions = yield transaction_service_1.TransactionService.getMyTransactions(decodeToken === null || decodeToken === void 0 ? void 0 : decodeToken.userId);
+    const userId = decodeToken === null || decodeToken === void 0 ? void 0 : decodeToken.userId;
+    const query = req.query;
+    const result = yield transaction_service_1.TransactionService.getMyTransactions(userId, query);
     (0, sendResponse_1.default)(res, {
         success: true,
         message: "Your transactions fetched successfully !*!",
         statusCode: http_status_codes_1.StatusCodes.OK,
-        data: transactions
+        meta: result.meta,
+        data: result.data,
     });
 }));
 const getAllTransactions = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -53,7 +56,6 @@ const getTransactionsByWallet = (0, catchAsync_1.default)((req, res, next) => __
 const createTransaction = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const transactionData = req.body;
     const transaction = yield transaction_service_1.TransactionService.createTransaction(transactionData);
-    console.log("transaction====", transaction);
     (0, sendResponse_1.default)(res, {
         success: true,
         message: "Transaction created successfully !*!",

@@ -33,6 +33,7 @@ const loadEnvVariables = () => {
         "TRANSACTION_FEE_PERCENT",
         "AGENT_COMMISSION_PERCENT",
         "SUPER_ADMIN_DEFAULT_BALANCE",
+        "SEND_MONEY_COMMISSION"
     ];
     requiredEnvVariables.forEach(key => {
         if (!process.env[key]) {
@@ -60,6 +61,7 @@ const loadEnvVariables = () => {
         TRANSACTION_FEE_PERCENT: process.env.TRANSACTION_FEE_PERCENT,
         AGENT_COMMISSION_PERCENT: process.env.AGENT_COMMISSION_PERCENT,
         SUPER_ADMIN_DEFAULT_BALANCE: process.env.SUPER_ADMIN_DEFAULT_BALANCE,
+        SEND_MONEY_COMMISSION: process.env.SEND_MONEY_COMMISSION,
         EMAIL_SENDER: {
             SMTP_USER: process.env.SMTP_USER,
             SMTP_PASS: process.env.SMTP_PASS,

@@ -54,5 +54,11 @@ exports.updateUserZodSchema = zod_1.default.object({
         .optional(),
     role: zod_1.default
         .enum(Object.values(user_interface_1.Role))
-        .optional()
+        .optional(),
+    isVerified: zod_1.default
+        .boolean()
+        .optional(),
+    isActived: zod_1.default
+        .enum(["ACTIVE", "INACTIVE", "BLOCKED"])
+        .optional(),
 });

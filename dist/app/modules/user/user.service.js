@@ -35,52 +35,39 @@ const QueryBuilder_1 = require("../../utils/QueryBuilder");
 const user_constant_1 = require("./user.constant");
 const mongoose_1 = __importDefault(require("mongoose"));
 const wallet_model_1 = require("../wallet/wallet.model");
-const transaction_model_1 = require("../transaction/transaction.model");
 const transaction_interface_1 = require("../transaction/transaction.interface");
+const createTransactionRecord_1 = require("../../middlewares/createTransactionRecord");
 const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
     try {
         const { email, password } = payload, rest = __rest(payload, ["email", "password"]);
-        // 1️⃣ Check if user exists
         const isUserExist = yield user_model_1.User.findOne({ email }).session(session);
         if (isUserExist) {
             throw new AppError_1.default(409, "User Already Exist!");
         }
-        // 2️⃣ Hash password
         const hashedPassword = yield bcryptjs_1.default.hash(password, Number(env_1.envVar.BCRYPT_SALT_ROUND));
-        // 3️⃣ Create user
         const authProvider = { provider: 'credentials', providerId: email };
         const user = yield user_model_1.User.create([Object.assign({ email, password: hashedPassword, auths: [authProvider] }, rest)], { session });
-        // 4️⃣ Create wallet for user with 50 balance
         const wallet = yield wallet_model_1.Wallet.create([{
                 owner: user[0]._id,
                 balance: Number(env_1.envVar.INITIAL_BALANCE) || 0
             }], { session });
-        // 5️⃣ Update user with wallet reference
         user[0].wallet = wallet[0]._id;
         yield user[0].save({ session });
-        // 6️⃣ Deduct 50 from admin wallet
         const superAdmin = yield user_model_1.User.findOne({ role: user_interface_1.Role.SUPER_ADMIN });
         if (!superAdmin)
             throw new AppError_1.default(500, "Super Admin not found");
         const adminWallet = yield wallet_model_1.Wallet.findOne({ owner: superAdmin._id }).session(session);
         if (!adminWallet)
             throw new AppError_1.default(400, "Admin wallet not found");
-        console.log("test", adminWallet);
         if (!adminWallet || adminWallet.balance < (env_1.envVar.INITIAL_BALANCE ? Number(env_1.envVar.INITIAL_BALANCE) : 0)) {
             throw new AppError_1.default(400, "Admin balance insufficient");
         }
         adminWallet.balance -= env_1.envVar.INITIAL_BALANCE ? Number(env_1.envVar.INITIAL_BALANCE) : 0;
         yield adminWallet.save({ session });
-        // 7️⃣ Create transaction record
-        yield transaction_model_1.Transaction.create([{
-                from: adminWallet._id,
-                to: wallet[0]._id,
-                amount: env_1.envVar.INITIAL_BALANCE ? Number(env_1.envVar.INITIAL_BALANCE) : 0,
-                type: transaction_interface_1.TransactionType.TOPUP,
-                status: transaction_interface_1.TransactionStatus.COMPLETED
-            }], { session });
+        const numericAmount = env_1.envVar.INITIAL_BALANCE ? Number(env_1.envVar.INITIAL_BALANCE) : 0;
+        yield (0, createTransactionRecord_1.createTransactionRecord)(adminWallet._id, wallet[0]._id, numericAmount, transaction_interface_1.TransactionType.CASHIN, transaction_interface_1.TransactionStatus.COMPLETED, session, {});
         yield session.commitTransaction();
         session.endSession();
         return user[0];
@@ -91,8 +78,6 @@ const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         throw new AppError_1.default(500, error.message);
     }
 });
-// const getAllUsers = async (query: Record<string, string>) => {
-// const queryBuilder = new QueryBuilder(User.find(), query)
 const getAllUsers = (query) => __awaiter(void 0, void 0, void 0, function* () {
     const queryBuilder = new QueryBuilder_1.QueryBuilder(user_model_1.User.find(), query);
     const users = queryBuilder
@@ -105,9 +90,6 @@ const getAllUsers = (query) => __awaiter(void 0, void 0, void 0, function* () {
         users.build(),
         queryBuilder.getMeta()
     ]);
-    // const allUser = await User.find({})
-    // const total = await User.countDocuments();
-    // const totalUser = Number(total)
     return {
         data,
         meta
@@ -125,10 +107,7 @@ const deleteUser = (UserId) => __awaiter(void 0, void 0, void 0, function* () {
     return null;
 });
 const updatedUser = (UserId, payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield user_model_1.User.findById(UserId);
     const userResult = yield user_model_1.User.findByIdAndUpdate(UserId, payload, { new: true, runValidators: true });
-    console.log(user);
-    console.log(userResult);
     return userResult;
 });
 exports.UserService = {

@@ -8,6 +8,7 @@ var TransactionType;
     TransactionType["SEND"] = "SEND";
     TransactionType["CASHIN"] = "CASHIN";
     TransactionType["CASHOUT"] = "CASHOUT";
+    TransactionType["COMMISSION"] = "COMMISSION";
 })(TransactionType || (exports.TransactionType = TransactionType = {}));
 var TransactionStatus;
 (function (TransactionStatus) {

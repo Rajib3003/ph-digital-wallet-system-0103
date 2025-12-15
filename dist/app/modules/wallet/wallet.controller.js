@@ -29,9 +29,10 @@ exports.depositMoney = (0, catchAsync_1.default)((req, res, next) => __awaiter(v
     });
 }));
 const withdrawMoney = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { amount } = req.body;
+    const { id, amount } = req.body;
     const decodeToken = req.user;
-    const wallet = yield wallet_service_1.WalletService.withdrawMoney(decodeToken.userId, Number(amount));
+    const userId = decodeToken.userId;
+    const wallet = yield wallet_service_1.WalletService.withdrawMoney(userId, id, amount);
     (0, sendResponse_1.default)(res, {
         success: true,
         message: "Money withdrawn successfully !*!",
@@ -94,6 +95,19 @@ const agentCashOut = (0, catchAsync_1.default)((req, res, next) => __awaiter(voi
         data: wallet
     });
 }));
+const getCommissionHistory = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const decodeToken = req.user;
+    const currentUserId = decodeToken.userId;
+    const query = req.query;
+    const result = yield wallet_service_1.WalletService.getCommissionHistory(currentUserId, query);
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        message: "commission history successful !*!",
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        meta: result.meta,
+        data: result.data,
+    });
+}));
 exports.WalletController = {
     depositMoney: exports.depositMoney,
     withdrawMoney,
@@ -101,5 +115,6 @@ exports.WalletController = {
     blockWallet,
     unblockWallet,
     agentCashIn,
-    agentCashOut
+    agentCashOut,
+    getCommissionHistory
 };

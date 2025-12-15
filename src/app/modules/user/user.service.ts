@@ -9,8 +9,8 @@ import { QueryBuilder } from "../../utils/QueryBuilder";
 import { userSearchableFields } from "./user.constant";
 import mongoose from "mongoose";
 import { Wallet } from "../wallet/wallet.model";
-import { Transaction } from "../transaction/transaction.model";
 import { TransactionStatus, TransactionType } from "../transaction/transaction.interface";
+import { createTransactionRecord } from "../../middlewares/createTransactionRecord";
 
 
 const createUser = async (payload: Partial<IUser>) => { 
@@ -53,15 +53,19 @@ const createUser = async (payload: Partial<IUser>) => {
             throw new AppError(400, "Admin balance insufficient");
         }
         adminWallet.balance -= envVar.INITIAL_BALANCE ? Number(envVar.INITIAL_BALANCE) : 0;
-        await adminWallet.save({ session });
-        
-        await Transaction.create([{
-            from: adminWallet._id,
-            to: wallet[0]._id,
-            amount: envVar.INITIAL_BALANCE ? Number(envVar.INITIAL_BALANCE) : 0,
-            type: TransactionType.TOPUP,
-            status: TransactionStatus.COMPLETED
-        }], { session });
+        await adminWallet.save({ session });        
+
+        const numericAmount =  envVar.INITIAL_BALANCE ? Number(envVar.INITIAL_BALANCE) : 0; 
+        await createTransactionRecord(
+            adminWallet._id,
+            wallet[0]._id,
+            numericAmount,
+            TransactionType.CASHIN,
+            TransactionStatus.COMPLETED,
+            session,
+            {}
+        );
+                  
 
         await session.commitTransaction();
         session.endSession();
