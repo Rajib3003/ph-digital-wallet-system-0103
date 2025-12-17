@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from "express";
 import catchAsync from "../../utils/catchAsync";
@@ -50,7 +51,7 @@ const credentialsLogin = catchAsync(async (req: Request, res: Response, next: Ne
     
 })
 
-const getNewAccessToken = catchAsync( async (req: Request, res: Response) => {
+const getNewAccessToken = catchAsync( async (req: Request, res: Response, next:NextFunction) => {
     
     const refreshToken = req.cookies.refreshToken
     
@@ -70,7 +71,7 @@ const getNewAccessToken = catchAsync( async (req: Request, res: Response) => {
         data: tokenInfo
     })
 })
-const logout = catchAsync( async (req: Request, res: Response) => {
+const logout = catchAsync( async (req: Request, res: Response,next:NextFunction) => {
     
     res.clearCookie("accessToken",{
         httpOnly: true,
@@ -89,7 +90,7 @@ const logout = catchAsync( async (req: Request, res: Response) => {
         data: null
     })
 })
-const changePassword = catchAsync( async (req: Request, res: Response) => {
+const changePassword = catchAsync( async (req: Request, res: Response,next:NextFunction) => {
     const decodedToken = req.user;
     const newPassword = req.body.newPassword;
     const oldPassword = req.body.oldPassword;
@@ -105,7 +106,7 @@ const changePassword = catchAsync( async (req: Request, res: Response) => {
         data: null
     })
 })
-const setPassword = catchAsync( async (req: Request, res: Response) => {
+const setPassword = catchAsync( async (req: Request, res: Response,next:NextFunction) => {
     
     const decodedToken = req.user as JwtPayload;       
     const {password} = req.body;   
@@ -122,7 +123,7 @@ const setPassword = catchAsync( async (req: Request, res: Response) => {
         data: null
     })
 });
-const forgotPassword = catchAsync( async (req: Request, res: Response) => {
+const forgotPassword = catchAsync( async (req: Request, res: Response,next:NextFunction) => {
     const { email } = req.body;
     await AuthService.forgotPassword(email);
     sendResponse(res,{
@@ -133,7 +134,7 @@ const forgotPassword = catchAsync( async (req: Request, res: Response) => {
     })
 });
 
-const resetPassword = catchAsync( async (req: Request, res: Response) => {
+const resetPassword = catchAsync( async (req: Request, res: Response,next:NextFunction) => {
     const decodedToken = req.user as JwtPayload;
     
     if(!decodedToken){
@@ -148,7 +149,7 @@ const resetPassword = catchAsync( async (req: Request, res: Response) => {
         data: null
     })
 });
-const googleCallBackController = catchAsync( async (req: Request, res: Response) => {
+const googleCallBackController = catchAsync( async (req: Request, res: Response,next:NextFunction) => {
     
 
     let redirectTo = req.query.state ? req.query.state as string : "";

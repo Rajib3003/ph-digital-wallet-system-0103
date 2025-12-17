@@ -26,7 +26,7 @@ const createUser = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 
         data: user,
     });
 }));
-const getAllUsers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllUsers = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const query = req.query;
     const result = yield user_service_1.UserService.getAllUsers(query);
     (0, sendResponse_1.default)(res, {
@@ -37,7 +37,7 @@ const getAllUsers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
         data: result.data,
     });
 }));
-const getSingleUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getSingleUser = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const UserId = req.params.userId;
     const result = yield user_service_1.UserService.getSingleUser(UserId);
     (0, sendResponse_1.default)(res, {
@@ -47,7 +47,7 @@ const getSingleUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
         data: result,
     });
 }));
-const deleteUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteUser = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const UserId = req.params.userId;
     const result = yield user_service_1.UserService.deleteUser(UserId);
     (0, sendResponse_1.default)(res, {
@@ -57,7 +57,7 @@ const deleteUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, voi
         data: result,
     });
 }));
-const updatedUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updatedUser = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const UserId = req.params.userId;
     const payload = req.body;
     const result = yield user_service_1.UserService.updatedUser(UserId, payload);

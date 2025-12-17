@@ -58,7 +58,7 @@ const credentialsLogin = (0, catchAsync_1.default)((req, res, next) => __awaiter
         });
     }))(req, res, next);
 }));
-const getNewAccessToken = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getNewAccessToken = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {
         throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "Refresh Token do not recieved !*!");
@@ -72,7 +72,7 @@ const getNewAccessToken = (0, catchAsync_1.default)((req, res) => __awaiter(void
         data: tokenInfo
     });
 }));
-const logout = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const logout = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     res.clearCookie("accessToken", {
         httpOnly: true,
         secure: false,
@@ -90,7 +90,7 @@ const logout = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0,
         data: null
     });
 }));
-const changePassword = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const changePassword = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const decodedToken = req.user;
     const newPassword = req.body.newPassword;
     const oldPassword = req.body.oldPassword;
@@ -105,7 +105,7 @@ const changePassword = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
         data: null
     });
 }));
-const setPassword = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const setPassword = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const decodedToken = req.user;
     const { password } = req.body;
     if (!decodedToken) {
@@ -119,7 +119,7 @@ const setPassword = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
         data: null
     });
 }));
-const forgotPassword = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const forgotPassword = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { email } = req.body;
     yield auth_service_1.AuthService.forgotPassword(email);
     (0, sendResponse_1.default)(res, {
@@ -129,7 +129,7 @@ const forgotPassword = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
         data: null
     });
 }));
-const resetPassword = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const resetPassword = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const decodedToken = req.user;
     if (!decodedToken) {
         throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "Decoded token is not recieved !*!");
@@ -142,7 +142,7 @@ const resetPassword = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
         data: null
     });
 }));
-const googleCallBackController = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const googleCallBackController = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     let redirectTo = req.query.state ? req.query.state : "";
     if (redirectTo.startsWith("/")) {
         redirectTo = redirectTo.slice(1);

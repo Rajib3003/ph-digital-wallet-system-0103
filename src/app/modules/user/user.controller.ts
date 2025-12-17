@@ -23,7 +23,7 @@ const createUser = catchAsync(async(req: Request, res: Response,next: NextFuncti
     }
 )
 
-const getAllUsers = catchAsync(async(req: Request, res: Response)=> {
+const getAllUsers = catchAsync(async(req: Request, res: Response,next:NextFunction)=> {
     const query = req.query
     const result = await UserService.getAllUsers(query as Record<string, string>);
     sendResponse(res,{
@@ -36,7 +36,7 @@ const getAllUsers = catchAsync(async(req: Request, res: Response)=> {
     })
 })
 
-const getSingleUser = catchAsync(async(req: Request, res: Response)=> {
+const getSingleUser = catchAsync(async(req: Request, res: Response,next:NextFunction)=> {
 
     const UserId = req.params.userId;    
     const result = await UserService.getSingleUser(UserId);
@@ -50,7 +50,7 @@ const getSingleUser = catchAsync(async(req: Request, res: Response)=> {
 
 
 })
-const deleteUser = catchAsync(async(req: Request, res: Response)=> {
+const deleteUser = catchAsync(async(req: Request, res: Response,next:NextFunction)=> {
     const UserId = req.params.userId;  
     const result = await UserService.deleteUser(UserId)
     sendResponse(res,{
@@ -61,7 +61,7 @@ const deleteUser = catchAsync(async(req: Request, res: Response)=> {
     })
 })
 
-const updatedUser = catchAsync(async(req: Request, res: Response)=> {
+const updatedUser = catchAsync(async(req: Request, res: Response,next:NextFunction)=> {
     const UserId = req.params.userId;  
     const payload = req.body;
     const result = await UserService.updatedUser(UserId, payload)
