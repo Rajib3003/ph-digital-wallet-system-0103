@@ -150,6 +150,8 @@ const resetPassword = catchAsync( async (req: Request, res: Response,next:NextFu
     })
 });
 const googleCallBackController = catchAsync( async (req: Request, res: Response,next:NextFunction) => {
+
+    
     
 
     let redirectTo = req.query.state ? req.query.state as string : "";

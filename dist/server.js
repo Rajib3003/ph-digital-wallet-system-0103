@@ -18,7 +18,6 @@ const env_1 = require("./app/config/env");
 const seedSuperAdmin_1 = require("./app/utils/seedSuperAdmin");
 let server;
 const serverStart = () => __awaiter(void 0, void 0, void 0, function* () {
-    // const port = 5000;
     try {
         yield mongoose_1.default.connect(env_1.envVar.DB_URL);
         console.log("Database connected");
@@ -37,6 +36,36 @@ const serverStart = () => __awaiter(void 0, void 0, void 0, function* () {
 // serverStart();
 process.on("unhandledRejection", (error) => {
     console.log("Unhandled Rejection is detected, we are closing our server....", error);
+    if (server) {
+        server.close(() => {
+            console.log("Server closed");
+            process.exit(1);
+        });
+    }
+    process.exit(1);
+});
+process.on("uncaughtException", (error) => {
+    console.log("uncaught Exception is detected, we are closing our server....", error);
+    if (server) {
+        server.close(() => {
+            console.log("Server closed");
+            process.exit(1);
+        });
+    }
+    process.exit(1);
+});
+process.on("SIGTERM", () => {
+    console.log("SIGTERM singnal recieved, we are closing our server....");
+    if (server) {
+        server.close(() => {
+            console.log("Server closed");
+            process.exit(1);
+        });
+    }
+    process.exit(1);
+});
+process.on("SIGINT", () => {
+    console.log("SIGINT singnal recieved, we are closing our server....");
     if (server) {
         server.close(() => {
             console.log("Server closed");

@@ -26,5 +26,4 @@ router.get("/google/callback", passport.authenticate("google", { failureRedirect
 
 
 
-
 export const AuthRoutes = router
