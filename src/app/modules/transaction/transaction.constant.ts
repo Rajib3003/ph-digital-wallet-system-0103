@@ -1,0 +1,1 @@
+export const transactionSearchableFields = ["type", "status", "from.name", "to.name"];

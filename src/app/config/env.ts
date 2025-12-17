@@ -19,6 +19,11 @@ interface EnvConfig {
     EXPRESS_SESSION_SECRET: string,
     SUPER_ADMIN_EMAIL: string,
     SUPER_ADMIN_PASSWORD: string,
+    INITIAL_BALANCE: string,
+    TRANSACTION_FEE_PERCENT: string,
+    AGENT_COMMISSION_PERCENT: string,
+    SUPER_ADMIN_DEFAULT_BALANCE: string,
+    SEND_MONEY_COMMISSION: string,
     EMAIL_SENDER: {
         SMTP_USER: string;
         SMTP_PASS: string;
@@ -53,6 +58,11 @@ const loadEnvVariables = () : EnvConfig => {
         "EXPRESS_SESSION_SECRET",
         "SUPER_ADMIN_EMAIL",
         "SUPER_ADMIN_PASSWORD",
+        "INITIAL_BALANCE",
+        "TRANSACTION_FEE_PERCENT",
+        "AGENT_COMMISSION_PERCENT",
+        "SUPER_ADMIN_DEFAULT_BALANCE",
+        "SEND_MONEY_COMMISSION"
     ]
 
     requiredEnvVariables.forEach(key =>{
@@ -79,6 +89,11 @@ const loadEnvVariables = () : EnvConfig => {
         EXPRESS_SESSION_SECRET: process.env.EXPRESS_SESSION_SECRET as string,
         SUPER_ADMIN_EMAIL: process.env.SUPER_ADMIN_EMAIL as string,
         SUPER_ADMIN_PASSWORD: process.env.SUPER_ADMIN_PASSWORD as string,
+        INITIAL_BALANCE: process.env.INITIAL_BALANCE as string,
+        TRANSACTION_FEE_PERCENT: process.env.TRANSACTION_FEE_PERCENT as string,
+        AGENT_COMMISSION_PERCENT: process.env.AGENT_COMMISSION_PERCENT as string,
+        SUPER_ADMIN_DEFAULT_BALANCE: process.env.SUPER_ADMIN_DEFAULT_BALANCE as string,
+        SEND_MONEY_COMMISSION: process.env.SEND_MONEY_COMMISSION as string,
         EMAIL_SENDER: {
             SMTP_USER: process.env.SMTP_USER as string,
             SMTP_PASS: process.env.SMTP_PASS as string,

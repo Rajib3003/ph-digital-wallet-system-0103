@@ -1,4 +1,4 @@
-import { model, Schema } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 import { IAuthProvider, isActived, IUser, Role } from "./user.interface";
 
 
@@ -56,7 +56,8 @@ const userSchema = new Schema<IUser>({
         enum: Object.values(Role),
         default: Role.USER
     },
-    auths: [authProviderSchema]
+    auths: [authProviderSchema],
+    wallet: { type: mongoose.Schema.Types.ObjectId, ref: "Wallet" }
 },{
     timestamps: true,
     versionKey: false,

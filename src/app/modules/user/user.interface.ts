@@ -34,4 +34,6 @@ export interface IUser {
     isVerified ?: boolean;    
     auths : IAuthProvider[];    
     createdAt ?: Date;
+    updatedAt ?: Date;
+    wallet?: Types.ObjectId;
 }

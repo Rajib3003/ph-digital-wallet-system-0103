@@ -8,7 +8,7 @@ import bcrypt from "bcryptjs"
 import { envVar } from "../../config/env"
 import { IAuthProvider, isActived } from "../user/user.interface"
 import jwt from 'jsonwebtoken';
-import { sendEmail } from "../user/sendEmail"
+import { sendEmail } from "../../utils/sendEmail"
 
 
 
