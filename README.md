@@ -1,4 +1,82 @@
 
+# Digital Wallet API - Project Overview
+The Digital Wallet API is a secure, modular and role based backend system by popular mobile financial services like bKash and Nagad.
+
+it is built Node.js(express.js) and MongoDB (Mongoose), focusing on scalability, security and clean architecture.
+
+This system enables users to manage digital wallets and perform core financial operations such as add money, cash-in funds and cash-out money while ensuring that every transaction is securely recorded and tranceable. 
+
+The API support four distinct roles -Superadmin, Admin , User and Agent each with clearly defined permission enforced through JWT based authentication and role based authorization middleware. 
+
+# API List
+<!-- user registration locally -->
+post - https://ph-digital-wallet-system-0103.vercel.app/api/v1/user/registration
+
+<!-- user registration with google -->
+https://ph-digital-wallet-system-0103.vercel.app/api/v1/auth/google
+
+<!-- All user get -->
+get - https://ph-digital-wallet-system-0103.vercel.app/api/v1/user
+
+<!-- single user get -->
+get - https://ph-digital-wallet-system-0103.vercel.app/api/v1/user/(id)
+
+<!-- delete user -->
+delete - https://ph-digital-wallet-system-0103.vercel.app/api/v1/user/(id)
+
+<!-- update user -->
+patch - https://ph-digital-wallet-system-0103.vercel.app/api/v1/user/(id)
+
+<!-- login -->
+post - https://ph-digital-wallet-system-0103.vercel.app/api/v1/auth/login
+
+<!-- refresh token -->
+post - https://ph-digital-wallet-system-0103.vercel.app/api/v1/auth/refresh-token
+
+<!-- logout  -->
+post - https://ph-digital-wallet-system-0103.vercel.app/api/v1/auth/logout
+
+<!-- set password -->
+post - https://ph-digital-wallet-system-0103.vercel.app/api/v1/auth/set-password
+
+<!-- deposet -->
+post - https://ph-digital-wallet-system-0103.vercel.app/api/v1/wallet/deposit
+
+<!-- withdraw -->
+post - https://ph-digital-wallet-system-0103.vercel.app/api/v1/wallet/withdraw
+
+<!-- block -->
+post - https://ph-digital-wallet-system-0103.vercel.app/api/v1/wallet/block/(id)
+
+<!-- unblock -->
+post - https://ph-digital-wallet-system-0103.vercel.app/api/v1/wallet/unblock/(id)
+
+<!-- cash in  -->
+post - https://ph-digital-wallet-system-0103.vercel.app/api/v1/wallet/agent/cash-in
+
+<!-- cash out -->
+post - https://ph-digital-wallet-system-0103.vercel.app/api/v1/wallet/agent/cash-out
+
+<!-- send -->
+post - https://ph-digital-wallet-system-0103.vercel.app/api/v1/wallet/send
+
+
+
+# URL
+<!-- vercel url -->
+https://ph-digital-wallet-system-0103.vercel.app
+
+<!-- githup link -->
+https://github.com/Rajib3003/ph-digital-wallet-system-0103.git
+
+<!-- video record link -->
+
+
+
+
+
+
+# project instraction start
 
 GitMind workflow create kora
 draw.io database draw kora 
