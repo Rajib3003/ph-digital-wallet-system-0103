@@ -8,10 +8,10 @@ import { Role } from "./user.interface";
 const router = Router();
 
 router.post("/registration",validateRequest(createUserZodSchema), UserController.createUser);
-router.get("/", checkAuth(Role.ADMIN), UserController.getAllUsers);
+router.get("/", checkAuth(Role.ADMIN,Role.SUPER_ADMIN), UserController.getAllUsers);
 router.get("/:userId", checkAuth(...Object.values(Role)), UserController.getSingleUser);
-router.delete("/:userId", checkAuth(Role.ADMIN), UserController.deleteUser);
-router.patch("/:userId",checkAuth(Role.ADMIN),validateRequest(updateUserZodSchema), UserController.updatedUser);
+router.delete("/:userId", checkAuth(Role.ADMIN,Role.SUPER_ADMIN), UserController.deleteUser);
+router.patch("/:userId",checkAuth(Role.ADMIN,Role.SUPER_ADMIN),validateRequest(updateUserZodSchema), UserController.updatedUser);
 
 
 export const UserRoutes = router
