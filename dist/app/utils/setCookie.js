@@ -7,16 +7,16 @@ const setAuthCookie = (res, tokenInfo) => {
         res.cookie("accessToken", tokenInfo.accessToken, {
             httpOnly: true,
             secure: env_1.envVar.NODE_ENV === "production",
-            sameSite: "lax"
-            // sameSite: "none"
+            // sameSite: "lax"
+            sameSite: "none"
         });
     }
     if (tokenInfo.refreshToken) {
         res.cookie("refreshToken", tokenInfo.refreshToken, {
             httpOnly: true,
             secure: env_1.envVar.NODE_ENV === "production",
-            sameSite: "lax",
-            // sameSite: "none",
+            // sameSite: "lax",
+            sameSite: "none",
         });
     }
 };
