@@ -12,6 +12,7 @@ const passport_1 = __importDefault(require("passport"));
 const express_session_1 = __importDefault(require("express-session"));
 const env_1 = require("./app/config/env");
 const cors_1 = __importDefault(require("cors"));
+const notFound_1 = __importDefault(require("./app/middlewares/notFound"));
 const app = (0, express_1.default)();
 const allowedOrigins = [
     env_1.envVar.FRONTEND_URL,
@@ -42,5 +43,15 @@ app.use((0, cors_1.default)({
     credentials: true,
 }));
 app.use("/api/v1", routes_1.router);
+app.get("/test-cookie", (req, res) => {
+    console.log("All cookies:", req.cookies);
+    res.send({ cookies: req.cookies });
+});
+app.get("/", (req, res) => {
+    res.status(200).json({
+        message: "Welcome to Digital Wallet Management System Backend"
+    });
+});
 app.use(globalErrorHandler_1.globalErrorHandler);
+app.use(notFound_1.default);
 exports.default = app;
