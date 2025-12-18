@@ -70,6 +70,8 @@ https://ph-digital-wallet-system-0103.vercel.app
 https://github.com/Rajib3003/ph-digital-wallet-system-0103.git
 
 <!-- video record link -->
+https://drive.google.com/file/d/1lELhWNORSXDe8mVLTkoQ3BS2NYd9D6MB/view?usp=sharing
+
 
 
 
